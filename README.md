@@ -1,94 +1,129 @@
+[![npm](https://img.shields.io/npm/v/nx-dynamic-mf?color=%2300d26a&style=for-the-badge)](https://www.npmjs.com/package/nx-dynamic-mf)
+[![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/LoaderB0T_nx-dynamic-mf?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=LoaderB0T_nx-dynamic-mf)
 
+# nx-dynamic-mf
 
-# LoaderB0T
+Nx helper for [ng-dynamic-mf](https://www.npmjs.com/package/ng-dynamic-mf)
 
-This project was generated using [Nx](https://nx.dev).
+## Motivation 💥
 
-<p style="text-align: center;"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="450"></p>
+This plugin provides a way to conviniently use the [ng-dynamic-mf](https://www.npmjs.com/package/ng-dynamic-mf) library in Nx workspaces.
 
-🔎 **Smart, Fast and Extensible Build System**
+## Features 🔥
 
-## Adding capabilities to your workspace
+✅ Start up the whole workspace with a single command (`nx construct`)
 
-Nx supports many plugins which add capabilities for developing different types of applications and different tools.
+✅ Supports multiple `modules.json` files in the workspace (`modules.something.json`)
 
-These capabilities include generating applications, libraries, etc as well as the devtools to test, and build projects as well.
+✅ Supports serving and building of apps (auto detection based on `modules.json`)
 
-Below are our core plugins:
+✅ Supports `--watch` flag for building apps
 
-- [React](https://reactjs.org)
-  - `npm install --save-dev @nrwl/react`
-- Web (no framework frontends)
-  - `npm install --save-dev @nrwl/web`
-- [Angular](https://angular.io)
-  - `npm install --save-dev @nrwl/angular`
-- [Nest](https://nestjs.com)
-  - `npm install --save-dev @nrwl/nest`
-- [Express](https://expressjs.com)
-  - `npm install --save-dev @nrwl/express`
-- [Node](https://nodejs.org)
-  - `npm install --save-dev @nrwl/node`
+More features including generators and more to come...
 
-There are also many [community plugins](https://nx.dev/community) you could add.
+## Built With 🔧
 
-## Generate an application
+- [TypeScript](https://www.typescriptlang.org/)
+- [Nx](https://nx.dev/)
 
-Run `nx g @nrwl/react:app my-app` to generate an application.
+## Getting Started 🚀
 
-> You can use any of the plugins above to generate applications as well.
+### Install
 
-When using Nx, you can create multiple applications and libraries in the same workspace.
+npm
 
-## Generate a library
+```bash
+npm install -D nx-dynamic-mf
+```
 
-Run `nx g @nrwl/react:lib my-lib` to generate a library.
+yarn
 
-> You can also use any of the plugins above to generate libraries as well.
+```bash
+yarn add -D nx-dynamic-mf
+```
 
-Libraries are shareable across libraries and applications. They can be imported from `@loader-b0-t/mylib`.
+### Add to Workspace
 
-## Development server
+Add a new target to your host app:
 
-Run `nx serve my-app` for a dev server. Navigate to http://localhost:4200/. The app will automatically reload if you change any of the source files.
+```json
+{
+  "targets": {
+    "construct": {
+      "builder": "nx-dynamic-mf:construct",
+      "options": {
+        "modulesFolder": "src/modules"
+      }
+    }
+  }
+}
+```
 
-## Code scaffolding
+### Try it out
 
-Run `nx g @nrwl/react:component my-component --project=my-app` to generate a new component.
+```bash
+  nx construct
+```
 
-## Build
+### Additional Options
 
-Run `nx build my-app` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Use a different `modules.json` file:
 
-## Running unit tests
+```bash
+  nx construct -m example
+```
 
-Run `nx test my-app` to execute the unit tests via [Jest](https://jestjs.io).
+This will use the `modules.example.json` file instead of the default `modules.json` file.
 
-Run `nx affected:test` to execute the unit tests affected by a change.
+---
 
-## Running end-to-end tests
+Watch certain projects for changes and rebuild them:
 
-Run `nx e2e my-app` to execute the end-to-end tests via [Cypress](https://www.cypress.io).
+Watch all builds:
 
-Run `nx affected:e2e` to execute the end-to-end tests affected by a change.
+```bash
+  nx construct --watch
+```
 
-## Understand your workspace
+Watch certain builds:
 
-Run `nx graph` to see a diagram of the dependencies of your projects.
+```bash
+  nx construct --watch proj1
+```
 
-## Further help
+or
 
-Visit the [Nx Documentation](https://nx.dev) to learn more.
+```bash
+  nx construct --watch proj1 --watch proj2
+```
 
+or
 
+```bash
+  nx construct --watch proj1,proj2
+```
 
-## ☁ Nx Cloud
+---
 
-### Distributed Computation Caching & Distributed Task Execution
+## Contributing 🧑🏻‍💻
 
-<p style="text-align: center;"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-cloud-card.png"></p>
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-Nx Cloud pairs with Nx in order to enable you to build and test code more rapidly, by up to 10 times. Even teams that are new to Nx can connect to Nx Cloud and start saving time instantly.
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
 
-Teams using Nx gain the advantage of building full-stack applications with their preferred framework alongside Nx’s advanced code generation and project dependency graph, plus a unified experience for both frontend and backend developers.
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Visit [Nx Cloud](https://nx.app/) to learn more.
+## License 🔑
+
+Distributed under the MIT License. See `LICENSE.txt` for more information.
+
+## Contact 📧
+
+Janik Schumacher - [@LoaderB0T](https://twitter.com/LoaderB0T) - [linkedin](https://www.linkedin.com/in/janikschumacher/)
+
+Project Link: [https://github.com/LoaderB0T/ng-dynamic-module-federation](https://github.com/LoaderB0T/ng-dynamic-module-federation)

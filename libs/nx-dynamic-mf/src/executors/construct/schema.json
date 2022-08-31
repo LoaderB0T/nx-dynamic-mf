@@ -6,6 +6,23 @@
     "modulesFile": {
       "type": "string",
       "description": "path to the modules.json file"
+    },
+    "watch": {
+      "description": "watch for changes on certain builds",
+      "oneOf": [
+        {
+          "type": "boolean",
+          "description": "watch for changes on all builds"
+        },
+        {
+          "type": "string",
+          "description": "watch for changes on a specific build or multiple comma separated builds"
+        },
+        {
+          "type": "array",
+          "description": "watch for changes on multiple builds"
+        }
+      ]
     }
   }
 }

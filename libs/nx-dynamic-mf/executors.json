@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/schema",
   "executors": {
     "construct": {
-      "implementation": "./src/executors/construct/executor",
+      "implementation": "./src/executors/construct/impl",
       "schema": "./src/executors/construct/schema.json",
       "description": "construct the whole mf project"
     }

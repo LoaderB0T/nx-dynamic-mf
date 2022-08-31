@@ -1,6 +1,30 @@
 {
   "name": "nx-dynamic-mf",
+  "description": "Nx helper for ng-dynamic-mf",
+  "license": "MIT",
   "version": "0.0.1",
+  "author": {
+    "name": "Janik Schumacher (LoaderB0T)",
+    "url": "https://awdware.de"
+  },
+  "homepage": "https://github.com/LoaderB0T/nx-dynamic-mf",
+  "bugs": {
+    "url": "https://github.com/LoaderB0T/nx-dynamic-mf/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LoaderB0T/nx-dynamic-mf.git"
+  },
+  "keywords": [
+    "nx",
+    "module",
+    "federation",
+    "mf",
+    "angular",
+    "dynamic",
+    "executor",
+    "module-federation"
+  ],
   "main": "src/index.js",
   "generators": "./generators.json",
   "executors": "./executors.json"

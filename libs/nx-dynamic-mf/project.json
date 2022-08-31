@@ -1,0 +1,60 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/nx-dynamic-mf/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/nx-dynamic-mf",
+        "main": "libs/nx-dynamic-mf/src/index.ts",
+        "tsConfig": "libs/nx-dynamic-mf/tsconfig.lib.json",
+        "assets": [
+          "libs/nx-dynamic-mf/*.md",
+          {
+            "input": "./libs/nx-dynamic-mf/src",
+            "glob": "**/!(*.ts)",
+            "output": "./src"
+          },
+          {
+            "input": "./libs/nx-dynamic-mf/src",
+            "glob": "**/*.d.ts",
+            "output": "./src"
+          },
+          {
+            "input": "./libs/nx-dynamic-mf",
+            "glob": "generators.json",
+            "output": "."
+          },
+          {
+            "input": "./libs/nx-dynamic-mf",
+            "glob": "executors.json",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "libs/nx-dynamic-mf/**/*.ts",
+          "libs/nx-dynamic-mf/generators.json",
+          "libs/nx-dynamic-mf/executors.json",
+          "libs/nx-dynamic-mf/package.json"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/nx-dynamic-mf"],
+      "options": {
+        "jestConfig": "libs/nx-dynamic-mf/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

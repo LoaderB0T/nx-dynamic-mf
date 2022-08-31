@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/nx/schemas/workspace-schema.json",
+  "version": 2,
+  "projects": {
+    "nx-dynamic-mf": "libs/nx-dynamic-mf",
+    "nx-dynamic-mf-e2e": "apps/nx-dynamic-mf-e2e"
+  }
+}

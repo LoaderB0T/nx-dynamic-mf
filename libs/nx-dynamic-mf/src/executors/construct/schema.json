@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "type": "object",
+  "cli": "nx",
+  "properties": {
+    "modulesFile": {
+      "type": "string",
+      "description": "path to the modules.json file"
+    }
+  }
+}

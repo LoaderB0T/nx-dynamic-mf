@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "name": "nx-dynamic-mf",
+  "version": "0.0.1",
+  "generators": {
+    "nx-dynamic-mf": {
+      "factory": "./src/generators/nx-dynamic-mf/generator",
+      "schema": "./src/generators/nx-dynamic-mf/schema.json",
+      "description": "nx-dynamic-mf generator"
+    }
+  }
+}

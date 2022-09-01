@@ -26,7 +26,8 @@
   ],
   "scripts": {
     "start": "nx serve",
-    "build": "nx build",
+    "build": "nx build && yarn cpy ./README.md dist/libs/nx-dynamic-mf",
+    "drop": "cd dist/libs/nx-dynamic-mf && yarn publish --no-git-tag-version",
     "test": "nx test"
   },
   "private": true,
@@ -50,6 +51,7 @@
     "@types/node": "16.11.7",
     "@typescript-eslint/eslint-plugin": "~5.33.1",
     "@typescript-eslint/parser": "~5.33.1",
+    "cpy-cli": "^4.2.0",
     "eslint": "~8.15.0",
     "eslint-config-prettier": "8.1.0",
     "jest": "28.1.1",

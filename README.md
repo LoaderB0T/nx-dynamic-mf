@@ -13,9 +13,9 @@ This plugin provides a way to conviniently use the [ng-dynamic-mf](https://www.n
 
 ✅ Start up the whole workspace with a single command (`nx construct`)
 
-✅ Supports multiple `modules.json` files in the workspace (`modules.something.json`)
+✅ Supports multiple `modules.<name>.json` files in the workspace
 
-✅ Supports serving and building of apps (auto detection based on `modules.json`)
+✅ Supports serving and building of apps (auto detection based on `modules.<name>.json`)
 
 ✅ Supports `--watch` flag for building apps
 
@@ -67,13 +67,13 @@ Add a new target to your host app:
 
 ### Additional Options
 
-Use a different `modules.json` file:
+Use a different `modules.<name>.json` file:
 
 ```bash
   nx construct -m example
 ```
 
-This will use the `modules.example.json` file instead of the default `modules.json` file.
+This will use the `modules.example.json` file instead of the default `modules.default.json` file.
 
 ---
 

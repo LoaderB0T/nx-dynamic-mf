@@ -32,6 +32,10 @@
     "host": {
       "type": "boolean",
       "description": "Serve the application(s) with the --host 0.0.0.0 option"
+    },
+    "build": {
+      "type": "boolean",
+      "description": "build the host instead of serving it"
     }
   }
 }

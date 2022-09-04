@@ -13,6 +13,7 @@ export interface ConstructExecutorOptions {
   modules?: string;
   watch?: boolean | string | string[];
   host?: boolean;
+  build?: boolean;
 }
 
 export default async function constructExecutor(
@@ -58,7 +59,11 @@ export default async function constructExecutor(
     builds,
     projConfig
   );
-  serveHost(servings, callerName, options);
+  if (options.build) {
+    buildHost(builds, callerName);
+  } else {
+    serveHost(servings, callerName, options);
+  }
 
   try {
     await Promise.all(builds);
@@ -151,6 +156,16 @@ function buildApp(
           `${projConfig.sourceRoot}${moduleToLoad.url}`
         );
       }
+    })
+  );
+}
+
+function buildHost(builds: Promise<void>[], callerName: string) {
+  builds.push(
+    new Promise<void>((resolve, reject) => {
+      const child = exec(`nx build ${callerName}`);
+      child.stdout?.pipe(process.stdout);
+      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
     })
   );
 }

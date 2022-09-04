@@ -5,6 +5,11 @@
       "implementation": "./src/executors/construct/impl",
       "schema": "./src/executors/construct/schema.json",
       "description": "construct the whole mf project"
+    },
+    "hash": {
+      "implementation": "./src/executors/hash/impl",
+      "schema": "./src/executors/hash/schema.json",
+      "description": "hash executor"
     }
   }
 }

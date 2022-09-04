@@ -1,8 +1,13 @@
-import { ConstructType } from '../types/construct.type';
+import { ConstructType } from '../construct/types/construct.type';
 
 export const getConstructTypeFromUrl = (url: string): ConstructType => {
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    if (!(url.startsWith('http://localhost') || url.startsWith('https://localhost'))) {
+    if (
+      !(
+        url.startsWith('http://localhost') ||
+        url.startsWith('https://localhost')
+      )
+    ) {
       // Skipping because external URL
       return 'none';
     }

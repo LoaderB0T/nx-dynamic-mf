@@ -2,12 +2,12 @@ import type { ExecutorContext, ProjectConfiguration } from '@nrwl/devkit';
 import { exec } from 'child_process';
 import { copyFileSync, readFileSync } from 'fs';
 import * as fse from 'fs-extra';
-import { ModuleCfg } from './types/module-cfg.type';
-import { ModuleDef } from './types/module-def.type';
-import { getConstructTypeFromUrl } from './utils/get-construct-type-from-url';
+import { ModuleCfg } from '../types/module-cfg.type';
+import { ModuleDef } from '../types/module-def.type';
+import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { getModulesToWatch } from './utils/get-modules-to-watch';
 
-export interface NgDynamicMfExecutorOptions {
+export interface ConstructExecutorOptions {
   modulesFolder: string;
   m?: string;
   modules?: string;
@@ -16,7 +16,7 @@ export interface NgDynamicMfExecutorOptions {
 }
 
 export default async function constructExecutor(
-  options: NgDynamicMfExecutorOptions,
+  options: ConstructExecutorOptions,
   context: ExecutorContext
 ): Promise<{ success: boolean }> {
   const callerName = context.projectName;
@@ -50,7 +50,54 @@ export default async function constructExecutor(
   });
 
   getModulesToWatch(options.watch, moduleCfgs);
+  buildAndServeModules(
+    moduleCfgs,
+    context,
+    servings,
+    options,
+    builds,
+    projConfig
+  );
+  serveHost(servings, callerName, options);
 
+  try {
+    await Promise.all(builds);
+    await Promise.all(servings);
+  } catch (error) {
+    console.error(`Error building referenced projects.`);
+    console.error(error);
+    return { success: false };
+  }
+
+  return { success: true };
+}
+
+function serveHost(
+  servings: Promise<void>[],
+  callerName: string,
+  options: ConstructExecutorOptions
+) {
+  servings.push(
+    new Promise<void>((resolve, reject) => {
+      const child = exec(
+        `nx serve ${callerName} --open${
+          options.host ? ' --host 0.0.0.0 --disable-host-check' : ''
+        }`
+      );
+      child.stdout?.pipe(process.stdout);
+      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
+    })
+  );
+}
+
+function buildAndServeModules(
+  moduleCfgs: ModuleDef[],
+  context: ExecutorContext,
+  servings: Promise<void>[],
+  options: ConstructExecutorOptions,
+  builds: Promise<void>[],
+  projConfig: ProjectConfiguration
+) {
   moduleCfgs.forEach((moduleToLoad) => {
     const moduleConfig = context.workspace.projects[moduleToLoad.name];
     if (moduleToLoad.constructType === 'none') {
@@ -66,29 +113,6 @@ export default async function constructExecutor(
       buildApp(moduleToLoad, builds, moduleConfig, projConfig);
     }
   });
-
-  servings.push(
-    new Promise<void>((resolve, reject) => {
-      const child = exec(
-        `nx serve ${callerName} --open${
-          options.host ? ' --host 0.0.0.0 --disable-host-check' : ''
-        }`
-      );
-      child.stdout?.pipe(process.stdout);
-      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
-    })
-  );
-
-  try {
-    await Promise.all(builds);
-    await Promise.all(servings);
-  } catch (error) {
-    console.error(`Error building referenced projects.`);
-    console.error(error);
-    return { success: false };
-  }
-
-  return { success: true };
 }
 
 function buildApp(

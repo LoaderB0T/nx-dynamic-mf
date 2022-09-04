@@ -1,4 +1,4 @@
-import { ConstructType } from './construct.type';
+import { ConstructType } from '../construct/types/construct.type';
 import { ModuleCfg } from './module-cfg.type';
 
 export type ModuleDef = ModuleCfg & {

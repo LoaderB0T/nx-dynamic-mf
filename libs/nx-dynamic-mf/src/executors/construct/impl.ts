@@ -59,9 +59,7 @@ export default async function constructExecutor(
     builds,
     projConfig
   );
-  if (options.build) {
-    buildHost(builds, callerName);
-  } else {
+  if (!options.build) {
     serveHost(servings, callerName, options);
   }
 
@@ -72,6 +70,11 @@ export default async function constructExecutor(
     console.error(`Error building referenced projects.`);
     console.error(error);
     return { success: false };
+  }
+
+  // Needs to be last so that the module bundles are already in the assets folder
+  if (options.build) {
+    await buildHost(callerName);
   }
 
   return { success: true };
@@ -160,15 +163,13 @@ function buildApp(
   );
 }
 
-function buildHost(builds: Promise<void>[], callerName: string) {
+async function buildHost(callerName: string) {
   console.log(`Building host ${callerName}`);
-  builds.push(
-    new Promise<void>((resolve, reject) => {
-      const child = exec(`nx build ${callerName}`);
-      child.stdout?.pipe(process.stdout);
-      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
-    })
-  );
+  await new Promise<void>((resolve, reject) => {
+    const child = exec(`nx build ${callerName}`);
+    child.stdout?.pipe(process.stdout);
+    child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
+  });
 }
 
 function serveApp(

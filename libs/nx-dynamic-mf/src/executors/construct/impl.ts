@@ -110,11 +110,23 @@ function buildApp(
       );
       child.stdout?.pipe(process.stdout);
       child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
+      if (watch) {
+        child.stdout?.on('data', (data) => {
+          if (data.includes('Build at:')) {
+            fse.copySync(
+              `./dist/${moduleConfig.root}`,
+              `${projConfig.sourceRoot}${moduleToLoad.url}`
+            );
+          }
+        });
+      }
     }).then(() => {
-      fse.copySync(
-        `./dist/${moduleConfig.root}`,
-        `${projConfig.sourceRoot}${moduleToLoad.url}`
-      );
+      if (!watch) {
+        fse.copySync(
+          `./dist/${moduleConfig.root}`,
+          `${projConfig.sourceRoot}${moduleToLoad.url}`
+        );
+      }
     })
   );
 }

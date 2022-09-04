@@ -20,7 +20,7 @@ export default async function runExecutor(
   const projConfig = context.workspace.projects[callerName];
   const projRoot = projConfig.root;
 
-  const modulesFilePath = `${projRoot}/${options.modulesFolder}/modules.json`;
+  const modulesFilePath = `./dist/${projRoot}/${options.modulesFolder}/modules.json`;
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
   const modules = JSON.parse(modulesFile) as ModuleCfg[];
 

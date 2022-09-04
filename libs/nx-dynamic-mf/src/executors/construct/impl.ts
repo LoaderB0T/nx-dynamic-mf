@@ -69,7 +69,11 @@ export default async function constructExecutor(
 
   servings.push(
     new Promise<void>((resolve, reject) => {
-      const child = exec(`nx serve ${callerName} --open`);
+      const child = exec(
+        `nx serve ${callerName} --open${
+          options.host ? ' --host 0.0.0.0 --disable-host-check' : ''
+        }`
+      );
       child.stdout?.pipe(process.stdout);
       child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
     })
@@ -129,8 +133,8 @@ function serveApp(
   servings.push(
     new Promise<void>((resolve, reject) => {
       const child = exec(
-        `nx serve ${moduleToLoad.name} --port ${portNumber} ${
-          host ? '--host 0.0.0.0 --disable-host-check' : ''
+        `nx serve ${moduleToLoad.name} --port ${portNumber}${
+          host ? ' --host 0.0.0.0 --disable-host-check' : ''
         }`
       );
       child.stdout?.pipe(process.stdout);

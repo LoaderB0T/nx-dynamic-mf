@@ -161,6 +161,7 @@ function buildApp(
 }
 
 function buildHost(builds: Promise<void>[], callerName: string) {
+  console.log(`Building host ${callerName}`);
   builds.push(
     new Promise<void>((resolve, reject) => {
       const child = exec(`nx build ${callerName}`);

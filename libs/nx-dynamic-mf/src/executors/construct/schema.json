@@ -28,6 +28,10 @@
           "description": "watch for changes on multiple builds"
         }
       ]
+    },
+    "host": {
+      "type": "boolean",
+      "description": "Serve the application(s) with the --host 0.0.0.0 option"
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { ExecutorContext } from '@nrwl/devkit';
+import type { ExecutorContext, ProjectConfiguration } from '@nrwl/devkit';
 import { exec } from 'child_process';
 import { copyFileSync, readFileSync } from 'fs';
 import * as fse from 'fs-extra';
@@ -12,18 +12,27 @@ export interface NgDynamicMfExecutorOptions {
   m?: string;
   modules?: string;
   watch?: boolean | string | string[];
+  host?: boolean;
 }
 
 export default async function constructExecutor(
   options: NgDynamicMfExecutorOptions,
   context: ExecutorContext
 ): Promise<{ success: boolean }> {
-  const callerName = context.projectName!;
+  const callerName = context.projectName;
+  if (!callerName) {
+    throw new Error('No projectName found in context');
+  }
   const projConfig = context.workspace.projects[callerName];
   const projRoot = projConfig.root;
 
-  const modulesJsonName = `modules.${options.m ?? options.modules ?? 'default'}.json`;
-  copyFileSync(`${projRoot}/${options.modulesFolder}/${modulesJsonName}`, `${projRoot}/${options.modulesFolder}/modules.json`);
+  const modulesJsonName = `modules.${
+    options.m ?? options.modules ?? 'default'
+  }.json`;
+  copyFileSync(
+    `${projRoot}/${options.modulesFolder}/${modulesJsonName}`,
+    `${projRoot}/${options.modulesFolder}/modules.json`
+  );
 
   const modulesFilePath = `${projRoot}/${options.modulesFolder}/modules.json`;
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
@@ -32,56 +41,37 @@ export default async function constructExecutor(
   const servings: Promise<void>[] = [];
   const builds: Promise<void>[] = [];
 
-  const moduleCfgs = modulesToLoad.map(m => {
+  const moduleCfgs = modulesToLoad.map((m) => {
     const moduleDef: ModuleDef = {
       ...m,
-      constructType: getConstructTypeFromUrl(m.url)
+      constructType: getConstructTypeFromUrl(m.url),
     };
     return moduleDef;
   });
 
   getModulesToWatch(options.watch, moduleCfgs);
 
-  moduleCfgs.forEach(moduleToLoad => {
+  moduleCfgs.forEach((moduleToLoad) => {
     const moduleConfig = context.workspace.projects[moduleToLoad.name];
     if (moduleToLoad.constructType === 'none') {
       return;
     }
     if (moduleToLoad.constructType === 'serve') {
-      const port = /localhost:(\d+)/.exec(moduleToLoad.url)![1];
-      if (!port || Number.isNaN(Number.parseInt(port))) {
-        throw new Error(`Invalid port in module ${moduleToLoad.name}`);
-      }
-      const portNumber = Number.parseInt(port);
-      console.log(`Serving ${moduleToLoad.name} on port ${portNumber}`);
-      servings.push(
-        new Promise<void>((resolve, reject) => {
-          const child = exec(`nx serve ${moduleToLoad.name} --port ${portNumber}`);
-          child.stdout!.pipe(process.stdout);
-          child.on('exit', code => (code === 0 ? resolve() : reject(code)));
-        })
-      );
+      serveApp(moduleToLoad, servings, options.host ?? false);
     }
-    if (moduleToLoad.constructType === 'build' || moduleToLoad.constructType === 'buildAndWatch') {
-      const watch = moduleToLoad.constructType === 'buildAndWatch';
-      console.log(`Building ${moduleToLoad.name} to ${moduleToLoad.url}${watch ? ' (watching)' : ''}`);
-      builds.push(
-        new Promise<void>((resolve, reject) => {
-          const child = exec(`nx build ${moduleToLoad.name}${watch ? ' --watch' : ''}`);
-          child.stdout!.pipe(process.stdout);
-          child.on('exit', code => (code === 0 ? resolve() : reject(code)));
-        }).then(() => {
-          fse.copySync(`./dist/${moduleConfig.root}`, `${projConfig.sourceRoot}${moduleToLoad.url}`);
-        })
-      );
+    if (
+      moduleToLoad.constructType === 'build' ||
+      moduleToLoad.constructType === 'buildAndWatch'
+    ) {
+      buildApp(moduleToLoad, builds, moduleConfig, projConfig);
     }
   });
 
   servings.push(
     new Promise<void>((resolve, reject) => {
       const child = exec(`nx serve ${callerName} --open`);
-      child.stdout!.pipe(process.stdout);
-      child.on('exit', code => (code === 0 ? resolve() : reject(code)));
+      child.stdout?.pipe(process.stdout);
+      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
     })
   );
 
@@ -95,4 +85,56 @@ export default async function constructExecutor(
   }
 
   return { success: true };
+}
+
+function buildApp(
+  moduleToLoad: ModuleDef,
+  builds: Promise<void>[],
+  moduleConfig: ProjectConfiguration,
+  projConfig: ProjectConfiguration
+) {
+  const watch = moduleToLoad.constructType === 'buildAndWatch';
+  console.log(
+    `Building ${moduleToLoad.name} to ${moduleToLoad.url}${
+      watch ? ' (watching)' : ''
+    }`
+  );
+  builds.push(
+    new Promise<void>((resolve, reject) => {
+      const child = exec(
+        `nx build ${moduleToLoad.name}${watch ? ' --watch' : ''}`
+      );
+      child.stdout?.pipe(process.stdout);
+      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
+    }).then(() => {
+      fse.copySync(
+        `./dist/${moduleConfig.root}`,
+        `${projConfig.sourceRoot}${moduleToLoad.url}`
+      );
+    })
+  );
+}
+
+function serveApp(
+  moduleToLoad: ModuleDef,
+  servings: Promise<void>[],
+  host: boolean
+) {
+  const port = /localhost:(\d+)/.exec(moduleToLoad.url)?.[1];
+  if (!port || Number.isNaN(Number.parseInt(port))) {
+    throw new Error(`Invalid port in module ${moduleToLoad.name}`);
+  }
+  const portNumber = Number.parseInt(port);
+  console.log(`Serving ${moduleToLoad.name} on port ${portNumber}`);
+  servings.push(
+    new Promise<void>((resolve, reject) => {
+      const child = exec(
+        `nx serve ${moduleToLoad.name} --port ${portNumber} ${
+          host ? '--host 0.0.0.0 --disable-host-check' : ''
+        }`
+      );
+      child.stdout?.pipe(process.stdout);
+      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
+    })
+  );
 }

@@ -64,7 +64,13 @@ export default async function constructExecutor(
   }
 
   try {
-    await Promise.all(builds);
+    await Promise.all(builds).then(() =>
+      copyBuilds(
+        moduleCfgs.filter((m) => m.constructType === 'build'),
+        context,
+        projConfig
+      )
+    );
     await Promise.all(servings);
   } catch (error) {
     console.error(`Error building referenced projects.`);
@@ -78,6 +84,20 @@ export default async function constructExecutor(
   }
 
   return { success: true };
+}
+
+function copyBuilds(
+  moduleDefs: ModuleDef[],
+  context: ExecutorContext,
+  projConfig: ProjectConfiguration
+) {
+  moduleDefs.forEach((moduleDef) => {
+    const moduleConfig = context.workspace.projects[moduleDef.name];
+    fse.copySync(
+      `./dist/${moduleConfig.root}`,
+      `${projConfig.sourceRoot}${moduleDef.url}`
+    );
+  });
 }
 
 function serveHost(
@@ -106,59 +126,63 @@ function buildAndServeModules(
   builds: Promise<void>[],
   projConfig: ProjectConfiguration
 ) {
-  moduleCfgs.forEach((moduleToLoad) => {
-    const moduleConfig = context.workspace.projects[moduleToLoad.name];
-    if (moduleToLoad.constructType === 'none') {
-      return;
-    }
-    if (moduleToLoad.constructType === 'serve') {
-      serveApp(moduleToLoad, servings, options.host ?? false);
-    }
-    if (
-      moduleToLoad.constructType === 'build' ||
-      moduleToLoad.constructType === 'buildAndWatch'
-    ) {
-      buildApp(moduleToLoad, builds, moduleConfig, projConfig);
-    }
+  const modulesToServe = moduleCfgs.filter((m) => m.constructType === 'serve');
+  const modulesToBuildAndWatch = moduleCfgs.filter(
+    (m) => m.constructType === 'buildAndWatch'
+  );
+  const modulesToBuild = moduleCfgs.filter((m) => m.constructType === 'build');
+
+  modulesToServe.forEach((moduleToLoad) => {
+    serveApp(moduleToLoad, servings, options.host ?? false);
   });
+
+  modulesToBuildAndWatch.forEach((moduleToLoad) => {
+    const moduleConfig = context.workspace.projects[moduleToLoad.name];
+    buildAndWatchApp(moduleToLoad, builds, moduleConfig, projConfig);
+  });
+
+  buildApps(modulesToBuild, builds);
 }
 
-function buildApp(
+function buildAndWatchApp(
   moduleToLoad: ModuleDef,
   builds: Promise<void>[],
   moduleConfig: ProjectConfiguration,
   projConfig: ProjectConfiguration
 ) {
-  const watch = moduleToLoad.constructType === 'buildAndWatch';
   console.log(
-    `Building ${moduleToLoad.name} to ${moduleToLoad.url}${
-      watch ? ' (watching)' : ''
-    }`
+    `Building ${moduleToLoad.name} to ${moduleToLoad.url} (watching)`
+  );
+  builds.push(
+    new Promise<void>((resolve, reject) => {
+      const child = exec(`nx build ${moduleToLoad.name} --watch`);
+      child.stdout?.pipe(process.stdout);
+      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
+      child.stdout?.on('data', (data) => {
+        if (data.includes('Build at:')) {
+          fse.copySync(
+            `./dist/${moduleConfig.root}`,
+            `${projConfig.sourceRoot}${moduleToLoad.url}`
+          );
+        }
+      });
+    })
+  );
+}
+
+function buildApps(modulesToLoad: ModuleDef[], builds: Promise<void>[]) {
+  console.log(
+    `Building ${modulesToLoad.map((m) => m.name).join(', ')} (watching)`
   );
   builds.push(
     new Promise<void>((resolve, reject) => {
       const child = exec(
-        `nx build ${moduleToLoad.name}${watch ? ' --watch' : ''}`
+        `nx run-many --target build --projects ${modulesToLoad
+          .map((m) => m.name)
+          .join(',')}`
       );
       child.stdout?.pipe(process.stdout);
       child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
-      if (watch) {
-        child.stdout?.on('data', (data) => {
-          if (data.includes('Build at:')) {
-            fse.copySync(
-              `./dist/${moduleConfig.root}`,
-              `${projConfig.sourceRoot}${moduleToLoad.url}`
-            );
-          }
-        });
-      }
-    }).then(() => {
-      if (!watch) {
-        fse.copySync(
-          `./dist/${moduleConfig.root}`,
-          `${projConfig.sourceRoot}${moduleToLoad.url}`
-        );
-      }
     })
   );
 }

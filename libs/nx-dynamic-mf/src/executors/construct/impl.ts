@@ -171,7 +171,7 @@ function buildAndWatchApp(
 }
 
 function buildApps(modulesToLoad: ModuleDef[], builds: Promise<void>[]) {
-  if (builds.length === 0) {
+  if (modulesToLoad.length === 0) {
     return;
   }
   console.log(

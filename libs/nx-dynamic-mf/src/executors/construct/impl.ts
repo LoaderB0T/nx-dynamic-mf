@@ -59,9 +59,6 @@ export default async function constructExecutor(
     builds,
     projConfig
   );
-  if (!options.build) {
-    serveHost(servings, callerName, options);
-  }
 
   try {
     await Promise.all(builds).then(() =>
@@ -71,6 +68,12 @@ export default async function constructExecutor(
         projConfig
       )
     );
+
+    // only start serving host after builds are done
+    if (!options.build) {
+      serveHost(servings, callerName, options);
+    }
+
     await Promise.all(servings);
   } catch (error) {
     console.error(`Error building referenced projects.`);
@@ -153,19 +156,22 @@ function buildAndWatchApp(
   console.log(
     `Building ${moduleToLoad.name} to ${moduleToLoad.url} (watching)`
   );
+  const child = exec(`nx build ${moduleToLoad.name} --watch`);
+  child.stdout?.pipe(process.stdout);
+  let _resolve: () => void;
+  child.stdout?.on('data', (data) => {
+    if (data.includes('Build at:')) {
+      fse.copySync(
+        `./dist/${moduleConfig.root}`,
+        `${projConfig.sourceRoot}${moduleToLoad.url}`
+      );
+      _resolve();
+    }
+  });
+  // watched builds are "done" when the first build is done
   builds.push(
-    new Promise<void>((resolve, reject) => {
-      const child = exec(`nx build ${moduleToLoad.name} --watch`);
-      child.stdout?.pipe(process.stdout);
-      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
-      child.stdout?.on('data', (data) => {
-        if (data.includes('Build at:')) {
-          fse.copySync(
-            `./dist/${moduleConfig.root}`,
-            `${projConfig.sourceRoot}${moduleToLoad.url}`
-          );
-        }
-      });
+    new Promise<void>((resolve) => {
+      _resolve = resolve;
     })
   );
 }

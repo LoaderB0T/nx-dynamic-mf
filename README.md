@@ -1,5 +1,6 @@
 [![npm](https://img.shields.io/npm/v/nx-dynamic-mf?color=%2300d26a&style=for-the-badge)](https://www.npmjs.com/package/nx-dynamic-mf)
 [![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/LoaderB0T_nx-dynamic-mf?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/summary/new_code?id=LoaderB0T_nx-dynamic-mf)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/nx-dynamic-mf?color=%23FF006F&label=Bundle%20Size&style=for-the-badge)](https://bundlephobia.com/package/nx-dynamic-mf)
 
 # nx-dynamic-mf
 

@@ -1,8 +1,8 @@
 import { ExecutorContext } from '@nrwl/devkit';
 import { readFileSync, writeFileSync } from 'fs';
-import { ModuleDef } from '../types/module-def.type';
+import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
-import { ModuleCfg } from '../types/module-cfg.type';
+import { ModuleDefinitions } from 'ng-dynamic-mf';
 import { createHash } from 'crypto';
 
 export interface HashExecutorOptions {
@@ -22,10 +22,10 @@ export default async function runExecutor(
 
   const modulesFilePath = `./dist/${projRoot}/${options.modulesFolder}/modules.json`;
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
-  const modules = JSON.parse(modulesFile) as ModuleCfg[];
+  const modules = JSON.parse(modulesFile) as ModuleDefinitions;
 
-  const moduleCfgs = modules.map((m) => {
-    const moduleDef: ModuleDef = {
+  const moduleCfgs = modules.modules.map((m) => {
+    const moduleDef: ExtendedModuleDefinition = {
       ...m,
       constructType: getConstructTypeFromUrl(m.url),
     };

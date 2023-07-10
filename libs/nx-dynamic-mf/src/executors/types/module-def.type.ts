@@ -1,6 +1,6 @@
+import { ModuleDefinition } from 'ng-dynamic-mf';
 import { ConstructType } from '../construct/types/construct.type';
-import { ModuleCfg } from './module-cfg.type';
 
-export type ModuleDef = ModuleCfg & {
+export type ExtendedModuleDefinition = ModuleDefinition & {
   constructType: ConstructType;
 };

@@ -1,8 +1,8 @@
-import { ModuleDef } from '../../types/module-def.type';
+import { ExtendedModuleDefinition } from '../../types/module-def.type';
 
 export const getModulesToWatch = (
   watch: undefined | boolean | string | string[],
-  modules: ModuleDef[]
+  modules: ExtendedModuleDefinition[]
 ): void => {
   if (!watch) {
     return;

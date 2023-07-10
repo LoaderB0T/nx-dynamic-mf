@@ -2,10 +2,10 @@ import type { ExecutorContext, ProjectConfiguration } from '@nrwl/devkit';
 import { exec } from 'child_process';
 import { copyFileSync, readFileSync } from 'fs';
 import * as fse from 'fs-extra';
-import { ModuleCfg } from '../types/module-cfg.type';
-import { ModuleDef } from '../types/module-def.type';
+import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { getModulesToWatch } from './utils/get-modules-to-watch';
+import { ModuleDefinitions } from 'ng-dynamic-mf';
 
 export interface ConstructExecutorOptions {
   modulesFolder: string;
@@ -37,13 +37,13 @@ export default async function constructExecutor(
 
   const modulesFilePath = `${projRoot}/${options.modulesFolder}/modules.json`;
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
-  const modulesToLoad = JSON.parse(modulesFile) as ModuleCfg[];
+  const modulesToLoad = JSON.parse(modulesFile) as ModuleDefinitions;
 
   const servings: Promise<void>[] = [];
   const builds: Promise<void>[] = [];
 
-  const moduleCfgs = modulesToLoad.map((m) => {
-    const moduleDef: ModuleDef = {
+  const moduleCfgs = modulesToLoad.modules.map((m) => {
+    const moduleDef: ExtendedModuleDefinition = {
       ...m,
       constructType: getConstructTypeFromUrl(m.url),
     };
@@ -90,7 +90,7 @@ export default async function constructExecutor(
 }
 
 function copyBuilds(
-  moduleDefs: ModuleDef[],
+  moduleDefs: ExtendedModuleDefinition[],
   context: ExecutorContext,
   projConfig: ProjectConfiguration
 ) {
@@ -122,7 +122,7 @@ function serveHost(
 }
 
 function buildAndServeModules(
-  moduleCfgs: ModuleDef[],
+  moduleCfgs: ExtendedModuleDefinition[],
   context: ExecutorContext,
   servings: Promise<void>[],
   options: ConstructExecutorOptions,
@@ -148,7 +148,7 @@ function buildAndServeModules(
 }
 
 function buildAndWatchApp(
-  moduleToLoad: ModuleDef,
+  moduleToLoad: ExtendedModuleDefinition,
   builds: Promise<void>[],
   moduleConfig: ProjectConfiguration,
   projConfig: ProjectConfiguration
@@ -176,7 +176,10 @@ function buildAndWatchApp(
   );
 }
 
-function buildApps(modulesToLoad: ModuleDef[], builds: Promise<void>[]) {
+function buildApps(
+  modulesToLoad: ExtendedModuleDefinition[],
+  builds: Promise<void>[]
+) {
   if (modulesToLoad.length === 0) {
     return;
   }
@@ -206,7 +209,7 @@ async function buildHost(callerName: string) {
 }
 
 function serveApp(
-  moduleToLoad: ModuleDef,
+  moduleToLoad: ExtendedModuleDefinition,
   servings: Promise<void>[],
   host: boolean
 ) {

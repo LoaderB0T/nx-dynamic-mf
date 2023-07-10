@@ -120,7 +120,7 @@ function adjustGlobalStylesBundleNameIfNecessary(
 ) {
   let changes = false;
   moduleCfgs
-    .filter((x) => x.hasGlobalStyles)
+    .filter((x) => x.hasGlobalStyles && x.constructType === 'build')
     .forEach((moduleCfg) => {
       const fileName = moduleCfg.globalStyleBundleName ?? 'global-styles.css';
       if (!projConfig.sourceRoot) {
@@ -133,7 +133,7 @@ function adjustGlobalStylesBundleNameIfNecessary(
       }
       const allFilesInParentFolder = readdirSync(fileParentPath);
       const globalStyleRegex = new RegExp(
-        `^${fileName.replace('.css', '')}\\\\..*\\.css$`
+        `^${fileName.replace('.css', '')}\\..*\\.css$`
       );
       const file = allFilesInParentFolder.find((f) => globalStyleRegex.test(f));
       if (!file) {

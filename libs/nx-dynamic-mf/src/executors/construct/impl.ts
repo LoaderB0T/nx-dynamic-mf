@@ -95,7 +95,7 @@ function copyBuilds(
   projConfig: ProjectConfiguration
 ) {
   moduleDefs.forEach((moduleDef) => {
-    const moduleConfig = context.workspace.projects[moduleDef.name];
+    const moduleConfig = getNxModuleConfig(context, moduleDef);
     fse.copySync(
       `./dist/${moduleConfig.root}`,
       `${projConfig.sourceRoot}${moduleDef.url}`
@@ -140,7 +140,7 @@ function buildAndServeModules(
   });
 
   modulesToBuildAndWatch.forEach((moduleToLoad) => {
-    const moduleConfig = context.workspace.projects[moduleToLoad.name];
+    const moduleConfig = getNxModuleConfig(context, moduleToLoad);
     buildAndWatchApp(moduleToLoad, builds, moduleConfig, projConfig);
   });
 
@@ -230,4 +230,11 @@ function serveApp(
       child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
     })
   );
+}
+
+function getNxModuleConfig(
+  context: ExecutorContext,
+  moduleDef: ExtendedModuleDefinition
+) {
+  return context.workspace.projects[moduleDef.projectName ?? moduleDef.name];
 }

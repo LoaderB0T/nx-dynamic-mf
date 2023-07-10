@@ -1,11 +1,20 @@
 import type { ExecutorContext, ProjectConfiguration } from '@nrwl/devkit';
 import { exec } from 'child_process';
-import { copyFileSync, readFileSync } from 'fs';
+import {
+  copyFileSync,
+  existsSync,
+  readFileSync,
+  readdir,
+  readdirSync,
+} from 'fs';
 import * as fse from 'fs-extra';
+
+import type { ModuleDefinitions } from 'ng-dynamic-mf';
+
 import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { getModulesToWatch } from './utils/get-modules-to-watch';
-import { ModuleDefinitions, join } from 'ng-dynamic-mf';
+import { join } from '../utils/path';
 
 export interface ConstructExecutorOptions {
   modulesFolder: string;
@@ -27,6 +36,7 @@ export default async function constructExecutor(
   const projConfig = context.workspace.projects[callerName];
   const projRoot = projConfig.root;
 
+  // Copy modules.*.json to modules.json
   const modulesJsonName = `modules.${
     options.m ?? options.modules ?? 'default'
   }.json`;
@@ -34,15 +44,13 @@ export default async function constructExecutor(
     join(projRoot, options.modulesFolder, modulesJsonName),
     join(projRoot, options.modulesFolder, 'modules.json')
   );
-
+  // Parse modules.json
   const modulesFilePath = join(projRoot, options.modulesFolder, 'modules.json');
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
-  const modulesToLoad = JSON.parse(modulesFile) as ModuleDefinitions;
+  const moduleDefinitions = JSON.parse(modulesFile) as ModuleDefinitions;
 
-  const servings: Promise<void>[] = [];
-  const builds: Promise<void>[] = [];
-
-  const moduleCfgs = modulesToLoad.modules.map((m) => {
+  // Add constructType to module definitions
+  const moduleCfgs = moduleDefinitions.modules.map((m) => {
     const moduleDef: ExtendedModuleDefinition = {
       ...m,
       constructType: getConstructTypeFromUrl(m.url),
@@ -50,18 +58,26 @@ export default async function constructExecutor(
     return moduleDef;
   });
 
+  // Adjust constructType for watch mode
   getModulesToWatch(options.watch, moduleCfgs);
+
+  // Build and serve modules
+  const servings: Promise<void>[] = [];
+  const builds: Promise<void>[] = [];
+
   buildAndServeModules(
+    builds,
+    servings,
     moduleCfgs,
     context,
-    servings,
     options,
-    builds,
     projConfig
   );
 
+  // Wait for builds to finish
   try {
     await Promise.all(builds).then(() =>
+      // Copy the builds after all builds are finished
       copyBuilds(
         moduleCfgs.filter((m) => m.constructType === 'build'),
         context,
@@ -69,7 +85,14 @@ export default async function constructExecutor(
       )
     );
 
-    // only start serving host after builds are done
+    adjustGlobalStylesBundleNameIfNecessary(
+      moduleCfgs,
+      projConfig,
+      moduleDefinitions,
+      modulesFilePath
+    );
+
+    // Serve the host after all builds (not the servings) are finished and options.build is false
     if (!options.build) {
       serveHost(servings, callerName, options);
     }
@@ -87,6 +110,52 @@ export default async function constructExecutor(
   }
 
   return { success: true };
+}
+
+function adjustGlobalStylesBundleNameIfNecessary(
+  moduleCfgs: ExtendedModuleDefinition[],
+  projConfig: ProjectConfiguration,
+  moduleDefinitions: ModuleDefinitions,
+  modulesFilePath: string
+) {
+  let changes = false;
+  moduleCfgs
+    .filter((x) => x.hasGlobalStyles)
+    .forEach((moduleCfg) => {
+      const fileName = moduleCfg.globalStyleBundleName ?? 'global-styles.css';
+      if (!projConfig.sourceRoot) {
+        throw new Error('No sourceRoot found in project configuration');
+      }
+      const fileParentPath = join(projConfig.sourceRoot, moduleCfg.url);
+      const filePath = join(fileParentPath, fileName);
+      if (existsSync(filePath)) {
+        return;
+      }
+      const allFilesInParentFolder = readdirSync(fileParentPath);
+      const globalStyleRegex = new RegExp(
+        `^${fileName.replace('.css', '')}\\\\..*\\.css$`
+      );
+      const file = allFilesInParentFolder.find((f) => globalStyleRegex.test(f));
+      if (!file) {
+        throw new Error(
+          `Could not find global style ${fileName} file for module ${moduleCfg.url}`
+        );
+      }
+      const moduleToUpdate = moduleDefinitions.modules.find(
+        (x) => x.name === moduleCfg.name
+      );
+      if (!moduleToUpdate) {
+        throw new Error(`Module ${moduleCfg.name} not found in modules.json`);
+      }
+      moduleToUpdate.globalStyleBundleName = file;
+      changes = true;
+    });
+  if (changes) {
+    fse.writeFileSync(
+      modulesFilePath,
+      JSON.stringify(moduleDefinitions, null, 2)
+    );
+  }
 }
 
 function copyBuilds(
@@ -125,11 +194,11 @@ function serveHost(
 }
 
 function buildAndServeModules(
+  builds: Promise<void>[],
+  servings: Promise<void>[],
   moduleCfgs: ExtendedModuleDefinition[],
   context: ExecutorContext,
-  servings: Promise<void>[],
   options: ConstructExecutorOptions,
-  builds: Promise<void>[],
   projConfig: ProjectConfiguration
 ) {
   const modulesToServe = moduleCfgs.filter((m) => m.constructType === 'serve');

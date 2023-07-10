@@ -1,9 +1,12 @@
 import { ExecutorContext } from '@nrwl/devkit';
 import { readFileSync, writeFileSync } from 'fs';
+import { createHash } from 'crypto';
+
+import type { ModuleDefinitions } from 'ng-dynamic-mf';
+
 import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
-import { ModuleDefinitions, join } from 'ng-dynamic-mf';
-import { createHash } from 'crypto';
+import { join } from '../utils/path';
 
 export interface HashExecutorOptions {
   modulesFolder: string;
@@ -40,7 +43,10 @@ export default async function runExecutor(
   moduleCfgs.forEach((m) => {
     if (m.constructType === 'build') {
       console.log(`Hashing ${m.name}...`);
-      const modulePath = `${projConfig.sourceRoot}${m.url}`;
+      if (!projConfig.sourceRoot) {
+        throw new Error(`No sourceRoot found for ${callerName}`);
+      }
+      const modulePath = join(projConfig.sourceRoot, m.url);
       const remoteEntryPath = join(modulePath, 'remoteEntry.js');
       const hash = createHash('shake256', { outputLength: 8 });
       hash.update(readFileSync(remoteEntryPath, 'utf8'));

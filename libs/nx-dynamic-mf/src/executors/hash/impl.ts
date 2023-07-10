@@ -2,7 +2,7 @@ import { ExecutorContext } from '@nrwl/devkit';
 import { readFileSync, writeFileSync } from 'fs';
 import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
-import { ModuleDefinitions } from 'ng-dynamic-mf';
+import { ModuleDefinitions, join } from 'ng-dynamic-mf';
 import { createHash } from 'crypto';
 
 export interface HashExecutorOptions {
@@ -20,11 +20,16 @@ export default async function runExecutor(
   const projConfig = context.workspace.projects[callerName];
   const projRoot = projConfig.root;
 
-  const modulesFilePath = `./dist/${projRoot}/${options.modulesFolder}/modules.json`;
+  const modulesFilePath = join(
+    'dist',
+    projRoot,
+    options.modulesFolder,
+    'modules.json'
+  );
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
-  const modules = JSON.parse(modulesFile) as ModuleDefinitions;
+  const moduleDefinitions = JSON.parse(modulesFile) as ModuleDefinitions;
 
-  const moduleCfgs = modules.modules.map((m) => {
+  const moduleCfgs = moduleDefinitions.modules.map((m) => {
     const moduleDef: ExtendedModuleDefinition = {
       ...m,
       constructType: getConstructTypeFromUrl(m.url),
@@ -36,16 +41,22 @@ export default async function runExecutor(
     if (m.constructType === 'build') {
       console.log(`Hashing ${m.name}...`);
       const modulePath = `${projConfig.sourceRoot}${m.url}`;
-      const remoteEntryPath = `${modulePath}/remoteEntry.js`;
+      const remoteEntryPath = join(modulePath, 'remoteEntry.js');
       const hash = createHash('shake256', { outputLength: 8 });
       hash.update(readFileSync(remoteEntryPath, 'utf8'));
-      m.hash = hash.digest('hex');
+      const moduleToUpdate = moduleDefinitions.modules.find(
+        (x) => x.name === m.name
+      );
+      if (!moduleToUpdate) {
+        throw new Error(`Module ${m.name} not found in modules.json`);
+      }
+      moduleToUpdate.hash = hash.digest('hex');
     } else {
       console.log(`Skipping hash for ${m.name} because it is served`);
     }
   });
 
-  writeFileSync(modulesFilePath, JSON.stringify(moduleCfgs, null, 2));
+  writeFileSync(modulesFilePath, JSON.stringify(moduleDefinitions, null, 2));
 
   return {
     success: true,

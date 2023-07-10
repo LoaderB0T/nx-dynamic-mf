@@ -34,7 +34,7 @@
   "private": true,
   "dependencies": {
     "@swc/helpers": "~0.3.3",
-    "ng-dynamic-mf": "2.0.0-pre6",
+    "ng-dynamic-mf": "2.0.0-pre7",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

@@ -5,7 +5,7 @@ import * as fse from 'fs-extra';
 import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { getModulesToWatch } from './utils/get-modules-to-watch';
-import { ModuleDefinitions } from 'ng-dynamic-mf';
+import { ModuleDefinitions, join } from 'ng-dynamic-mf';
 
 export interface ConstructExecutorOptions {
   modulesFolder: string;
@@ -31,11 +31,11 @@ export default async function constructExecutor(
     options.m ?? options.modules ?? 'default'
   }.json`;
   copyFileSync(
-    `${projRoot}/${options.modulesFolder}/${modulesJsonName}`,
-    `${projRoot}/${options.modulesFolder}/modules.json`
+    join(projRoot, options.modulesFolder, modulesJsonName),
+    join(projRoot, options.modulesFolder, 'modules.json')
   );
 
-  const modulesFilePath = `${projRoot}/${options.modulesFolder}/modules.json`;
+  const modulesFilePath = join(projRoot, options.modulesFolder, 'modules.json');
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
   const modulesToLoad = JSON.parse(modulesFile) as ModuleDefinitions;
 
@@ -96,9 +96,12 @@ function copyBuilds(
 ) {
   moduleDefs.forEach((moduleDef) => {
     const moduleConfig = getNxModuleConfig(context, moduleDef);
+    if (!projConfig.sourceRoot) {
+      throw new Error('No sourceRoot found in project configuration');
+    }
     fse.copySync(
-      `./dist/${moduleConfig.root}`,
-      `${projConfig.sourceRoot}${moduleDef.url}`
+      join('dist', moduleConfig.root),
+      join(projConfig.sourceRoot, moduleDef.url)
     );
   });
 }
@@ -161,9 +164,12 @@ function buildAndWatchApp(
   let _resolve: () => void;
   child.stdout?.on('data', (data) => {
     if (data.includes('Build at:')) {
+      if (!projConfig.sourceRoot) {
+        throw new Error('No sourceRoot found in project configuration');
+      }
       fse.copySync(
-        `./dist/${moduleConfig.root}`,
-        `${projConfig.sourceRoot}${moduleToLoad.url}`
+        join('dist', moduleConfig.root),
+        join(projConfig.sourceRoot, moduleToLoad.url)
       );
       _resolve();
     }
@@ -236,5 +242,12 @@ function getNxModuleConfig(
   context: ExecutorContext,
   moduleDef: ExtendedModuleDefinition
 ) {
-  return context.workspace.projects[moduleDef.projectName ?? moduleDef.name];
+  const searchForName = moduleDef.projectName ?? moduleDef.name;
+  const res = context.workspace.projects[searchForName];
+  if (!res) {
+    throw new Error(
+      `Could not find project ${searchForName}. Try specifying of adjusting the projectName in the module definition.`
+    );
+  }
+  return res;
 }

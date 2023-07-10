@@ -5,8 +5,8 @@ dependencies:
     specifier: ~0.3.3
     version: 0.3.17
   ng-dynamic-mf:
-    specifier: 2.0.0-pre6
-    version: 2.0.0-pre6(@angular-architects/module-federation@16.0.4)(@angular/common@16.1.4)(@angular/core@16.1.4)
+    specifier: 2.0.0-pre7
+    version: 2.0.0-pre7(@angular-architects/module-federation@16.0.4)(@angular/common@16.1.4)(@angular/core@16.1.4)
   tslib:
     specifier: ^2.3.0
     version: 2.4.0
@@ -3916,8 +3916,8 @@ packages:
     resolution: {integrity: sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==}
     dev: true
 
-  /ng-dynamic-mf@2.0.0-pre6(@angular-architects/module-federation@16.0.4)(@angular/common@16.1.4)(@angular/core@16.1.4):
-    resolution: {integrity: sha512-iWfyjzI/0P0yZNknngrr7Ot8ogfqnrrPUIMd/78XbNFcNgV5s1WSNfWpUUyJjhWjmX5/TYtl8/wZ8IjWLWyU4g==}
+  /ng-dynamic-mf@2.0.0-pre7(@angular-architects/module-federation@16.0.4)(@angular/common@16.1.4)(@angular/core@16.1.4):
+    resolution: {integrity: sha512-Vuyt8EtJC62kyArMeXQER2q56OaTTTSDBM3iyfbmQikc5Huuhy23f97sTVcohj2iil8tM9Xc4WLAAUT5M0rNYw==}
     peerDependencies:
       '@angular-architects/module-federation': '>=14.0.0'
       '@angular/common': '>=13.2.0'

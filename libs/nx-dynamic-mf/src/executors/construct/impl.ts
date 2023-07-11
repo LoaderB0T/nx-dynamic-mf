@@ -1,12 +1,5 @@
 import type { ExecutorContext, ProjectConfiguration } from '@nrwl/devkit';
-import { exec } from 'child_process';
-import {
-  copyFileSync,
-  existsSync,
-  readFileSync,
-  readdir,
-  readdirSync,
-} from 'fs';
+import { copyFileSync, existsSync, readFileSync, readdirSync } from 'fs';
 import * as fse from 'fs-extra';
 
 import type { ModuleDefinitions } from 'ng-dynamic-mf';
@@ -30,6 +23,13 @@ export default async function constructExecutor(
   const projConfig = context.workspace.projects[callerName];
   const projRoot = projConfig.root;
 
+  // Copy environment.*.json to modules.json
+  const environmentJsonName = `environment.${options.e ?? 'default'}.json`;
+  copyFileSync(
+    join(projRoot, 'environments', environmentJsonName),
+    join(projRoot, 'environments', 'environment.json')
+  );
+
   // Copy modules.*.json to modules.json
   const modulesJsonName = `modules.${
     options.m ?? options.modules ?? 'default'
@@ -38,6 +38,7 @@ export default async function constructExecutor(
     join(projRoot, options.modulesFolder, modulesJsonName),
     join(projRoot, options.modulesFolder, 'modules.json')
   );
+
   // Parse modules.json
   const modulesFilePath = join(projRoot, options.modulesFolder, 'modules.json');
   const modulesFile = readFileSync(modulesFilePath, 'utf8');

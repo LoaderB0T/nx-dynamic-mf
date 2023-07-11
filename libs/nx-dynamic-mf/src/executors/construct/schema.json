@@ -33,6 +33,10 @@
       "type": "boolean",
       "description": "Serve the application(s) with the --host 0.0.0.0 option"
     },
+    "e": {
+      "type": "string",
+      "description": "Specify an environment file. Defaults to environment.default.json if not specified"
+    },
     "prebuilt": {
       "type": "boolean",
       "description": "Set this to true if all modules are already built and you don't want to build them again"

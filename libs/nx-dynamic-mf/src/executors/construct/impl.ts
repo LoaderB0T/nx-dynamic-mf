@@ -297,7 +297,9 @@ function serveApp(
   servings.push(
     new Promise<void>((resolve, reject) => {
       const child = exec(
-        `nx serve ${moduleToLoad.name} --port ${portNumber}${
+        `nx serve ${
+          moduleToLoad.projectName ?? moduleToLoad.name
+        } --port ${portNumber}${
           host ? ' --host 0.0.0.0 --disable-host-check' : ''
         }`
       );

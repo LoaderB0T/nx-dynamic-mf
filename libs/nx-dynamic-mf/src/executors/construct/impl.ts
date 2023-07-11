@@ -17,7 +17,7 @@ import { getModulesToWatch } from './utils/get-modules-to-watch';
 import { join } from '../utils/path';
 import { ConstructExecutorOptions } from './types/options.type';
 import { isBuilt } from './utils/is-built';
-import { promiseExec } from 'libs/nx-dynamic-mf/src/executors/utils/promise-exec';
+import { promiseExec } from '../utils/promise-exec';
 
 export default async function constructExecutor(
   options: ConstructExecutorOptions,

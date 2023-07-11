@@ -22,12 +22,16 @@ export default async function constructExecutor(
   }
   const projConfig = context.workspace.projects[callerName];
   const projRoot = projConfig.root;
+  const projSrcRoot = projConfig.sourceRoot;
+  if (!projSrcRoot) {
+    throw new Error(`No sourceRoot found for ${callerName}`);
+  }
 
   // Copy environment.*.json to modules.json
   const environmentJsonName = `environment.${options.e ?? 'default'}.json`;
   copyFileSync(
-    join(projRoot, 'environments', environmentJsonName),
-    join(projRoot, 'environments', 'environment.json')
+    join(projSrcRoot, 'environments', environmentJsonName),
+    join(projSrcRoot, 'environments', 'environment.json')
   );
 
   // Copy modules.*.json to modules.json

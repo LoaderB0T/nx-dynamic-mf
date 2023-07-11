@@ -15,15 +15,8 @@ import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { getModulesToWatch } from './utils/get-modules-to-watch';
 import { join } from '../utils/path';
-
-export interface ConstructExecutorOptions {
-  modulesFolder: string;
-  m?: string;
-  modules?: string;
-  watch?: boolean | string | string[];
-  host?: boolean;
-  build?: boolean;
-}
+import { ConstructExecutorOptions } from './types/options.type';
+import { isBuilt } from './utils/is-built';
 
 export default async function constructExecutor(
   options: ConstructExecutorOptions,
@@ -53,13 +46,15 @@ export default async function constructExecutor(
   const moduleCfgs = moduleDefinitions.modules.map((m) => {
     const moduleDef: ExtendedModuleDefinition = {
       ...m,
-      constructType: getConstructTypeFromUrl(m.url),
+      constructType: getConstructTypeFromUrl(m.url, options.prebuilt),
     };
     return moduleDef;
   });
 
-  // Adjust constructType for watch mode
-  getModulesToWatch(options.watch, moduleCfgs);
+  if (!options.prebuilt) {
+    // Adjust constructType for watch mode
+    getModulesToWatch(options.watch, moduleCfgs);
+  }
 
   // Build and serve modules
   const servings: Promise<void>[] = [];
@@ -79,7 +74,7 @@ export default async function constructExecutor(
     await Promise.all(builds).then(() =>
       // Copy the builds after all builds are finished
       copyBuilds(
-        moduleCfgs.filter((m) => m.constructType === 'build'),
+        moduleCfgs.filter((m) => isBuilt(m)),
         context,
         projConfig
       )
@@ -120,7 +115,7 @@ function adjustGlobalStylesBundleNameIfNecessary(
 ) {
   let changes = false;
   moduleCfgs
-    .filter((x) => x.hasGlobalStyles && x.constructType === 'build')
+    .filter((x) => x.hasGlobalStyles && isBuilt(x))
     .forEach((moduleCfg) => {
       const fileName = moduleCfg.globalStyleBundleName ?? 'global-styles.css';
       if (!projConfig.sourceRoot) {
@@ -205,7 +200,7 @@ function buildAndServeModules(
   const modulesToBuildAndWatch = moduleCfgs.filter(
     (m) => m.constructType === 'buildAndWatch'
   );
-  const modulesToBuild = moduleCfgs.filter((m) => m.constructType === 'build');
+  const modulesToBuild = moduleCfgs.filter((m) => isBuilt(m));
 
   modulesToServe.forEach((moduleToLoad) => {
     serveApp(moduleToLoad, servings, options.host ?? false);

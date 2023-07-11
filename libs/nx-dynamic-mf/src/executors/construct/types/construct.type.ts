@@ -1,1 +1,6 @@
-export type ConstructType = 'none' | 'serve' | 'build' | 'buildAndWatch';
+export type ConstructType =
+  | 'prebuilt'
+  | 'none'
+  | 'serve'
+  | 'build'
+  | 'buildAndWatch';

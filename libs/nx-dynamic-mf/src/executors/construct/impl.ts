@@ -17,6 +17,7 @@ import { getModulesToWatch } from './utils/get-modules-to-watch';
 import { join } from '../utils/path';
 import { ConstructExecutorOptions } from './types/options.type';
 import { isBuilt } from './utils/is-built';
+import { promiseExec } from 'libs/nx-dynamic-mf/src/executors/utils/promise-exec';
 
 export default async function constructExecutor(
   options: ConstructExecutorOptions,
@@ -176,15 +177,11 @@ function serveHost(
   options: ConstructExecutorOptions
 ) {
   servings.push(
-    new Promise<void>((resolve, reject) => {
-      const cmd = `nx serve ${callerName} --open${
+    promiseExec(
+      `nx serve ${callerName} --open${
         options.host ? ' --host 0.0.0.0 --disable-host-check' : ''
-      }`;
-      console.log('executing: ', cmd);
-      const child = exec(cmd);
-      child.stdout?.pipe(process.stdout);
-      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
-    })
+      }`
+    )
   );
 }
 
@@ -225,10 +222,8 @@ function buildAndWatchApp(
   );
   const cmd = `nx build ${moduleToLoad.name} --watch`;
   console.log('executing: ', cmd);
-  const child = exec(cmd);
-  child.stdout?.pipe(process.stdout);
   let _resolve: () => void;
-  child.stdout?.on('data', (data) => {
+  promiseExec(cmd, (data) => {
     if (data.includes('Build at:')) {
       if (!projConfig.sourceRoot) {
         throw new Error('No sourceRoot found in project configuration');
@@ -257,27 +252,17 @@ function buildApps(
   }
   console.log(`Building ${modulesToLoad.map((m) => m.name).join(', ')}`);
   builds.push(
-    new Promise<void>((resolve, reject) => {
-      const cmd = `nx run-many --target build --projects ${modulesToLoad
+    promiseExec(
+      `nx run-many --target build --projects ${modulesToLoad
         .map((m) => m.projectName ?? m.name)
-        .join(',')}`;
-      console.log('executing: ', cmd);
-      const child = exec(cmd);
-      child.stdout?.pipe(process.stdout);
-      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
-    })
+        .join(',')}`
+    )
   );
 }
 
 async function buildHost(callerName: string) {
   console.log(`Building host ${callerName}`);
-  await new Promise<void>((resolve, reject) => {
-    const cmd = `nx build ${callerName}`;
-    console.log('executing: ', cmd);
-    const child = exec(cmd);
-    child.stdout?.pipe(process.stdout);
-    child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
-  });
+  await promiseExec(`nx build ${callerName}`);
 }
 
 function serveApp(
@@ -292,17 +277,13 @@ function serveApp(
   const portNumber = Number.parseInt(port);
   console.log(`Serving ${moduleToLoad.name} on port ${portNumber}`);
   servings.push(
-    new Promise<void>((resolve, reject) => {
-      const cmd = `nx serve ${
+    promiseExec(
+      `nx serve ${
         moduleToLoad.projectName ?? moduleToLoad.name
       } --port ${portNumber}${
         host ? ' --host 0.0.0.0 --disable-host-check' : ''
-      }`;
-      console.log('executing: ', cmd);
-      const child = exec(cmd);
-      child.stdout?.pipe(process.stdout);
-      child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
-    })
+      }`
+    )
   );
 }
 

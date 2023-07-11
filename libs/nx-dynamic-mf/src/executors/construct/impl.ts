@@ -71,13 +71,12 @@ export default async function constructExecutor(
 
   // Wait for builds to finish
   try {
-    await Promise.all(builds).then(() =>
-      // Copy the builds after all builds are finished
-      copyBuilds(
-        moduleCfgs.filter((m) => isBuilt(m)),
-        context,
-        projConfig
-      )
+    await Promise.all(builds);
+    // Copy the builds after all builds are finished
+    copyBuilds(
+      moduleCfgs.filter((m) => isBuilt(m)),
+      context,
+      projConfig
     );
 
     adjustGlobalStylesBundleNameIfNecessary(
@@ -201,7 +200,7 @@ function buildAndServeModules(
   const modulesToBuildAndWatch = moduleCfgs.filter(
     (m) => m.constructType === 'buildAndWatch'
   );
-  const modulesToBuild = moduleCfgs.filter((m) => isBuilt(m));
+  const modulesToBuild = moduleCfgs.filter((m) => m.constructType === 'build');
 
   modulesToServe.forEach((moduleToLoad) => {
     serveApp(moduleToLoad, servings, options.host ?? false);
@@ -256,13 +255,11 @@ function buildApps(
   if (modulesToLoad.length === 0) {
     return;
   }
-  console.log(
-    `Building ${modulesToLoad.map((m) => m.name).join(', ')} (watching)`
-  );
+  console.log(`Building ${modulesToLoad.map((m) => m.name).join(', ')}`);
   builds.push(
     new Promise<void>((resolve, reject) => {
       const cmd = `nx run-many --target build --projects ${modulesToLoad
-        .map((m) => m.name)
+        .map((m) => m.projectName ?? m.name)
         .join(',')}`;
       console.log('executing: ', cmd);
       const child = exec(cmd);

@@ -132,6 +132,7 @@ function adjustGlobalStylesBundleNameIfNecessary(
       );
       const file = allFilesInParentFolder.find((f) => globalStyleRegex.test(f));
       if (!file) {
+        console.error('foundFiles: ', allFilesInParentFolder);
         throw new Error(
           `Could not find global style ${fileName} file for module ${moduleCfg.url}`
         );
@@ -177,11 +178,11 @@ function serveHost(
 ) {
   servings.push(
     new Promise<void>((resolve, reject) => {
-      const child = exec(
-        `nx serve ${callerName} --open${
-          options.host ? ' --host 0.0.0.0 --disable-host-check' : ''
-        }`
-      );
+      const cmd = `nx serve ${callerName} --open${
+        options.host ? ' --host 0.0.0.0 --disable-host-check' : ''
+      }`;
+      console.log('executing: ', cmd);
+      const child = exec(cmd);
       child.stdout?.pipe(process.stdout);
       child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
     })
@@ -223,7 +224,9 @@ function buildAndWatchApp(
   console.log(
     `Building ${moduleToLoad.name} to ${moduleToLoad.url} (watching)`
   );
-  const child = exec(`nx build ${moduleToLoad.name} --watch`);
+  const cmd = `nx build ${moduleToLoad.name} --watch`;
+  console.log('executing: ', cmd);
+  const child = exec(cmd);
   child.stdout?.pipe(process.stdout);
   let _resolve: () => void;
   child.stdout?.on('data', (data) => {
@@ -258,11 +261,11 @@ function buildApps(
   );
   builds.push(
     new Promise<void>((resolve, reject) => {
-      const child = exec(
-        `nx run-many --target build --projects ${modulesToLoad
-          .map((m) => m.name)
-          .join(',')}`
-      );
+      const cmd = `nx run-many --target build --projects ${modulesToLoad
+        .map((m) => m.name)
+        .join(',')}`;
+      console.log('executing: ', cmd);
+      const child = exec(cmd);
       child.stdout?.pipe(process.stdout);
       child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
     })
@@ -272,7 +275,9 @@ function buildApps(
 async function buildHost(callerName: string) {
   console.log(`Building host ${callerName}`);
   await new Promise<void>((resolve, reject) => {
-    const child = exec(`nx build ${callerName}`);
+    const cmd = `nx build ${callerName}`;
+    console.log('executing: ', cmd);
+    const child = exec(cmd);
     child.stdout?.pipe(process.stdout);
     child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
   });
@@ -291,13 +296,13 @@ function serveApp(
   console.log(`Serving ${moduleToLoad.name} on port ${portNumber}`);
   servings.push(
     new Promise<void>((resolve, reject) => {
-      const child = exec(
-        `nx serve ${
-          moduleToLoad.projectName ?? moduleToLoad.name
-        } --port ${portNumber}${
-          host ? ' --host 0.0.0.0 --disable-host-check' : ''
-        }`
-      );
+      const cmd = `nx serve ${
+        moduleToLoad.projectName ?? moduleToLoad.name
+      } --port ${portNumber}${
+        host ? ' --host 0.0.0.0 --disable-host-check' : ''
+      }`;
+      console.log('executing: ', cmd);
+      const child = exec(cmd);
       child.stdout?.pipe(process.stdout);
       child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
     })

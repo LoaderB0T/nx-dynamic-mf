@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "type": "object",
+  "cli": "nx",
+  "properties": {
+    "envSrcFolder": {
+      "type": "string",
+      "description": "path to the folder containing the environment<name>.json file(s)"
+    },
+    "envOutFolder": {
+      "type": "string",
+      "description": "path to the output folder for the environment.json file"
+    },
+    "e": {
+      "type": "string",
+      "description": "Specify an environment file. Defaults to environment.default.json if not specified"
+    },
+    "serveTarget": {
+      "type": "string",
+      "description": "The target to serve. Defaults to 'serve-ng'"
+    }
+  }
+}

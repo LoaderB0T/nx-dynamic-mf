@@ -2,15 +2,30 @@
   "$schema": "http://json-schema.org/schema",
   "type": "object",
   "cli": "nx",
-  "required": ["modulesFolder"],
   "properties": {
-    "modulesFolder": {
+    "modulesSrcFolder": {
       "type": "string",
-      "description": "path to the folder containing the module.json and/or modules.<name>.json file(s)"
+      "description": "path to the folder containing the modules files"
+    },
+    "modulesOutFolder": {
+      "type": "string",
+      "description": "path to the output folder for the modules.json file"
+    },
+    "envSrcFolder": {
+      "type": "string",
+      "description": "path to the folder containing the environment files"
+    },
+    "envOutFolder": {
+      "type": "string",
+      "description": "path to the output folder for the environment.json file"
     },
     "m": {
       "type": "string",
-      "description": "specified a different modules.<value>.json file"
+      "description": "Specify a modules file. Defaults to modules.default.json if not specified"
+    },
+    "e": {
+      "type": "string",
+      "description": "Specify an environment file. Defaults to environment.default.json if not specified"
     },
     "watch": {
       "description": "watch for changes on certain builds",
@@ -33,17 +48,13 @@
       "type": "boolean",
       "description": "Serve the application(s) with the --host 0.0.0.0 option"
     },
-    "e": {
-      "type": "string",
-      "description": "Specify an environment file. Defaults to environment.default.json if not specified"
+    "build": {
+      "type": "boolean",
+      "description": "build the host instead of serving it"
     },
     "prebuilt": {
       "type": "boolean",
       "description": "Set this to true if all modules are already built and you don't want to build them again"
-    },
-    "build": {
-      "type": "boolean",
-      "description": "build the host instead of serving it"
     }
   }
 }

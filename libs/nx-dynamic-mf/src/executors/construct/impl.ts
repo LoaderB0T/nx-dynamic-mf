@@ -7,10 +7,12 @@ import type { ModuleDefinitions } from 'ng-dynamic-mf';
 import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { getModulesToWatch } from './utils/get-modules-to-watch';
-import { join } from '../utils/path';
+import { join, resolvePath } from '../utils/path';
 import { ConstructExecutorOptions } from './types/options.type';
 import { isBuilt } from './utils/is-built';
 import { promiseExec } from '../utils/promise-exec';
+import { getCfgFile } from '../utils/get-json-file';
+import { copy } from '../utils/copy-file';
 
 export default async function constructExecutor(
   options: ConstructExecutorOptions,
@@ -28,23 +30,31 @@ export default async function constructExecutor(
   }
 
   // Copy environment.*.json to modules.json
-  const environmentJsonName = `environment.${options.e ?? 'default'}.json`;
-  copyFileSync(
-    join(projSrcRoot, 'environments', environmentJsonName),
-    join(projSrcRoot, 'environments', 'environment.json')
+  const { configJsonPath: environmentJsonPath } = await getCfgFile(
+    'environment',
+    projRoot,
+    options.envSrcFolder,
+    options.e
   );
+  const absoluteEnvOutDir = resolvePath(projRoot, 'src', options.envOutFolder);
+  await copy(environmentJsonPath, join(absoluteEnvOutDir, 'environment.json'));
 
-  // Copy modules.*.json to modules.json
-  const modulesJsonName = `modules.${
-    options.m ?? options.modules ?? 'default'
-  }.json`;
-  copyFileSync(
-    join(projRoot, options.modulesFolder, modulesJsonName),
-    join(projRoot, options.modulesFolder, 'modules.json')
+  // Copy environment.*.json to modules.json
+  const { configJsonPath: moduleJsonPath } = await getCfgFile(
+    'modules',
+    projRoot,
+    options.modulesSrcFolder,
+    options.e
   );
+  const absoluteModulesOutDir = resolvePath(
+    projRoot,
+    'src',
+    options.modulesOutFolder
+  );
+  const modulesFilePath = join(absoluteModulesOutDir, 'modules.json');
+  await copy(moduleJsonPath, modulesFilePath);
 
   // Parse modules.json
-  const modulesFilePath = join(projRoot, options.modulesFolder, 'modules.json');
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
   const moduleDefinitions = JSON.parse(modulesFile) as ModuleDefinitions;
 

@@ -9,7 +9,7 @@ import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { join } from '../utils/path';
 
 export interface HashExecutorOptions {
-  modulesFolder: string;
+  modulesOutFolder?: string;
 }
 
 export default async function runExecutor(
@@ -23,12 +23,7 @@ export default async function runExecutor(
   const projConfig = context.workspace.projects[callerName];
   const projRoot = projConfig.root;
 
-  const modulesFilePath = join(
-    'dist',
-    projRoot,
-    options.modulesFolder,
-    'modules.json'
-  );
+  const modulesFilePath = join('dist', projRoot, 'modules.json');
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
   const moduleDefinitions = JSON.parse(modulesFile) as ModuleDefinitions;
 

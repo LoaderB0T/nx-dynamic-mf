@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "serve-remote": {
+      "implementation": "./impl",
+      "schema": "./schema.json",
+      "description": "Serve a remote module with a specific environment"
+    }
+  }
+}

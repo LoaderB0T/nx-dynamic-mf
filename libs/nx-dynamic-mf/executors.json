@@ -10,6 +10,11 @@
       "implementation": "./src/executors/hash/impl",
       "schema": "./src/executors/hash/schema.json",
       "description": "hash executor"
+    },
+    "serve-remote": {
+      "implementation": "./src/executors/serve-remote/impl",
+      "schema": "./src/executors/serve-remote/schema.json",
+      "description": "serve-remote executor"
     }
   }
 }

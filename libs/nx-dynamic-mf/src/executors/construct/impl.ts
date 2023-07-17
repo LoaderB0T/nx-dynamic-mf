@@ -191,12 +191,10 @@ function serveHost(
   callerName: string,
   options: ConstructExecutorOptions
 ) {
+  const envString = options.e ? `--configuration ${options.e}` : '';
+  const hostString = options.host ? ' --host 0.0.0.0 --disable-host-check' : '';
   servings.push(
-    promiseExec(
-      `nx serve ${callerName} --open${
-        options.host ? ' --host 0.0.0.0 --disable-host-check' : ''
-      }`
-    )
+    promiseExec(`nx serve ${callerName} --open${envString}${hostString}`)
   );
 }
 

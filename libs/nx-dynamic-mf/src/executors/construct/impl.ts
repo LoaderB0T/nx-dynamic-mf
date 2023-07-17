@@ -44,7 +44,7 @@ export default async function constructExecutor(
     'modules',
     projRoot,
     options.modulesSrcFolder,
-    options.e
+    options.m
   );
   const absoluteModulesOutDir = resolvePath(
     projRoot,

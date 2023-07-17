@@ -191,7 +191,7 @@ function serveHost(
   callerName: string,
   options: ConstructExecutorOptions
 ) {
-  const envString = options.e ? `--configuration ${options.e}` : '';
+  const envString = options.e ? ` -e ${options.e}` : '';
   const hostString = options.host ? ' --host 0.0.0.0 --disable-host-check' : '';
   servings.push(
     promiseExec(`nx serve ${callerName} --open${envString}${hostString}`)
@@ -213,7 +213,7 @@ function buildAndServeModules(
   const modulesToBuild = moduleCfgs.filter((m) => m.constructType === 'build');
 
   modulesToServe.forEach((moduleToLoad) => {
-    serveApp(moduleToLoad, servings, options.host ?? false);
+    serveApp(options, moduleToLoad, servings);
   });
 
   modulesToBuildAndWatch.forEach((moduleToLoad) => {
@@ -279,23 +279,22 @@ async function buildHost(callerName: string) {
 }
 
 function serveApp(
+  options: ConstructExecutorOptions,
   moduleToLoad: ExtendedModuleDefinition,
-  servings: Promise<void>[],
-  host: boolean
+  servings: Promise<void>[]
 ) {
   const port = /localhost:(\d+)/.exec(moduleToLoad.url)?.[1];
   if (!port || Number.isNaN(Number.parseInt(port))) {
     throw new Error(`Invalid port in module ${moduleToLoad.name}`);
   }
+  const moduleProjectName = moduleToLoad.projectName ?? moduleToLoad.name;
   const portNumber = Number.parseInt(port);
+  const envString = options.e ? ` -e ${options.e}` : '';
+  const hostString = options.host ? ' --host 0.0.0.0 --disable-host-check' : '';
   console.log(`Serving ${moduleToLoad.name} on port ${portNumber}`);
   servings.push(
     promiseExec(
-      `nx serve ${
-        moduleToLoad.projectName ?? moduleToLoad.name
-      } --port ${portNumber}${
-        host ? ' --host 0.0.0.0 --disable-host-check' : ''
-      }`
+      `nx serve ${moduleProjectName} --port ${portNumber}${envString}${hostString}`
     )
   );
 }

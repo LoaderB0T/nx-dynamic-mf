@@ -5,5 +5,7 @@ export async function copy(from: string, to: string) {
     await unlink(to);
   }
 
+  console.log(`[copy] ${from}\n[ -> ] ${to}`);
+
   copyFileSync(from, to);
 }

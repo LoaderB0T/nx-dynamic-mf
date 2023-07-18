@@ -52,9 +52,6 @@ export default async function constructExecutor(
     await copy(moduleJsonPath, modulesFilePath);
   }
 
-  console.log(`['copy' : 'link'}] -- ${envName} --`);
-  console.log(`${environmentJsonPath} -> ${outFileName}`);
-
   const serveCmdName = options.serveTarget ?? 'serve-ng';
   const configurationCmd = context.configurationName
     ? `--configuration ${context.configurationName}`

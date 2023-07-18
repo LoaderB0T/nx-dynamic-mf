@@ -32,10 +32,25 @@ export default async function constructExecutor(
       options.envSrcFolder,
       options.e
     );
-
   const outFileName = join(absoluteEnvOutDir, 'environment.json');
-
   await copy(environmentJsonPath, outFileName);
+
+  if (options.m) {
+    // Copy modules.*.json to modules.json
+    const { configJsonPath: moduleJsonPath } = await getCfgFile(
+      'modules',
+      projectRoot,
+      options.modulesSrcFolder,
+      options.m
+    );
+    const absoluteModulesOutDir = resolvePath(
+      projectRoot,
+      'src',
+      options.modulesOutFolder
+    );
+    const modulesFilePath = join(absoluteModulesOutDir, 'modules.json');
+    await copy(moduleJsonPath, modulesFilePath);
+  }
 
   console.log(`['copy' : 'link'}] -- ${envName} --`);
   console.log(`${environmentJsonPath} -> ${outFileName}`);

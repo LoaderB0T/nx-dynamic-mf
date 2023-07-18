@@ -39,7 +39,7 @@ export default async function constructExecutor(
   const absoluteEnvOutDir = resolvePath(projRoot, 'src', options.envOutFolder);
   await copy(environmentJsonPath, join(absoluteEnvOutDir, 'environment.json'));
 
-  // Copy environment.*.json to modules.json
+  // Copy modules.*.json to modules.json
   const { configJsonPath: moduleJsonPath } = await getCfgFile(
     'modules',
     projRoot,

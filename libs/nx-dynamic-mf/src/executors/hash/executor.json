@@ -3,7 +3,7 @@
     "construct": {
       "implementation": "./impl",
       "schema": "./schema.json",
-      "description": "Calculates hashes for the bundled modules remoteEntry.js & adds them to the module json file."
+      "description": "Calculates hashes for the bundled modules remoteEntry.json & adds them to the module json file."
     }
   }
 }

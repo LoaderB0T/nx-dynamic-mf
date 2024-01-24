@@ -136,12 +136,15 @@ function adjustGlobalStylesBundleNameIfNecessary(
       if (!projConfig.sourceRoot) {
         throw new Error('No sourceRoot found in project configuration');
       }
-      const fileParentPath = join(projConfig.sourceRoot, moduleCfg.url);
-      const filePath = join(fileParentPath, fileName);
+      const moduleRootDir = join(projConfig.sourceRoot, moduleCfg.url);
+      const filePath = join(moduleRootDir, fileName);
       if (existsSync(filePath)) {
         return;
       }
-      const allFilesInParentFolder = readdirSync(fileParentPath);
+      const globalStylesDir = existsSync(join(moduleRootDir, 'browser'))
+        ? join(moduleRootDir, 'browser')
+        : moduleRootDir;
+      const allFilesInParentFolder = readdirSync(globalStylesDir);
       const globalStyleRegex = new RegExp(
         `^${fileName.replace('.css', '')}\\..*\\.css$`
       );
@@ -179,10 +182,19 @@ function copyBuilds(
     if (!projConfig.sourceRoot) {
       throw new Error('No sourceRoot found in project configuration');
     }
-    fse.copySync(
-      join('dist', moduleConfig.root),
-      join(projConfig.sourceRoot, moduleDef.url)
-    );
+
+    const distModulePath = join('dist', moduleConfig.root);
+
+    const distModulePathBrowser = existsSync(join(distModulePath, 'browser'))
+      ? join(distModulePath, 'browser')
+      : distModulePath;
+
+    const hostModulePath = join(projConfig.sourceRoot, moduleDef.url);
+    if (existsSync(hostModulePath)) {
+      fse.removeSync(hostModulePath);
+    }
+
+    fse.copySync(distModulePathBrowser, hostModulePath);
   });
 }
 

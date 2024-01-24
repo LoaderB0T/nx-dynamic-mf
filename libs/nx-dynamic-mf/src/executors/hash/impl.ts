@@ -7,6 +7,7 @@ import type { ModuleDefinitions } from 'ng-dynamic-mf';
 import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { join } from '../utils/path';
+import { existsSync } from 'fs-extra';
 
 export interface HashExecutorOptions {
   modulesOutFolder?: string;
@@ -21,7 +22,9 @@ export default async function runExecutor(
     throw new Error('No projectName found in context');
   }
   const projConfig = context.workspace.projects[callerName];
-  const projRoot = projConfig.root;
+  const projRoot = existsSync(join('dist', projConfig.root, 'browser'))
+    ? join(projConfig.root, 'browser')
+    : projConfig.root;
 
   const modulesFilePath = join('dist', projRoot, 'modules.json');
   const modulesFile = readFileSync(modulesFilePath, 'utf8');
@@ -42,7 +45,7 @@ export default async function runExecutor(
         throw new Error(`No sourceRoot found for ${callerName}`);
       }
       const modulePath = join(projConfig.sourceRoot, m.url);
-      const remoteEntryPath = join(modulePath, 'remoteEntry.js');
+      const remoteEntryPath = join(modulePath, 'remoteEntry.json');
       const hash = createHash('shake256', { outputLength: 8 });
       hash.update(readFileSync(remoteEntryPath, 'utf8'));
       const moduleToUpdate = moduleDefinitions.modules.find(

@@ -2,7 +2,7 @@
   "name": "nx-dynamic-mf",
   "description": "Nx helper for ng-dynamic-mf",
   "license": "MIT",
-  "version": "4.0.0-pre4",
+  "version": "4.0.0",
   "author": {
     "name": "Janik Schumacher (LoaderB0T)",
     "url": "https://awdware.de"
@@ -19,16 +19,21 @@
     "nx",
     "module",
     "federation",
+    "native",
+    "nf",
     "mf",
     "angular",
     "dynamic",
     "executor",
-    "module-federation"
+    "module-federation",
+    "native-federation",
+    "ng-dynamic-mf",
+    "microfrontend"
   ],
   "main": "src/index.js",
   "generators": "./generators.json",
   "executors": "./executors.json",
   "peerDependencies": {
-    "ng-dynamic-mf": ">=2.0.0pre5"
+    "ng-dynamic-mf": ">=3.0.0"
   }
 }

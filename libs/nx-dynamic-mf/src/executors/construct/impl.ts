@@ -1,5 +1,5 @@
 import type { ExecutorContext, ProjectConfiguration } from '@nrwl/devkit';
-import { copyFileSync, existsSync, readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import * as fse from 'fs-extra';
 
 import type { ModuleDefinitions } from 'ng-dynamic-mf';

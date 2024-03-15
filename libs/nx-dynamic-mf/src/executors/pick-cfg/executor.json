@@ -1,9 +1,9 @@
 {
   "executors": {
-    "serve-remote": {
+    "pick-cfg": {
       "implementation": "./impl",
       "schema": "./schema.json",
-      "description": "Serve a remote module with a specific environment"
+      "description": "Pick the config files to use for build or serve."
     }
   }
 }

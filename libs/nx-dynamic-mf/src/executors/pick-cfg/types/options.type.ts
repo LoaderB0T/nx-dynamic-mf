@@ -5,5 +5,4 @@ export interface ServeRemoteExecutorOptions {
   m?: string;
   modulesSrcFolder?: string;
   modulesOutFolder?: string;
-  serveTarget?: string;
 }

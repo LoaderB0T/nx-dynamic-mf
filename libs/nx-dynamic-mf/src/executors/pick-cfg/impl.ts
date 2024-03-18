@@ -26,19 +26,22 @@ export default async function pickCfgExecutor(
       throw new Error('No sourceRoot found in context');
     }
 
-    const absoluteEnvOutDir = resolvePath(
-      projectRoot,
-      'src',
-      options.envOutFolder
-    );
-    const { configJsonPath: environmentJsonPath } = await getCfgFile(
-      'environment',
-      projectRoot,
-      options.envSrcFolder,
-      options.e
-    );
-    const outFileName = join(absoluteEnvOutDir, 'environment.json');
-    await copy(environmentJsonPath, outFileName);
+    if (options.e) {
+      // Copy environment.*.json to environment.json
+      const absoluteEnvOutDir = resolvePath(
+        projectRoot,
+        'src',
+        options.envOutFolder
+      );
+      const { configJsonPath: environmentJsonPath } = await getCfgFile(
+        'environment',
+        projectRoot,
+        options.envSrcFolder,
+        options.e
+      );
+      const outFileName = join(absoluteEnvOutDir, 'environment.json');
+      await copy(environmentJsonPath, outFileName);
+    }
 
     if (options.m) {
       // Copy modules.*.json to modules.json
@@ -55,6 +58,12 @@ export default async function pickCfgExecutor(
       );
       const modulesFilePath = join(absoluteModulesOutDir, 'modules.json');
       await copy(moduleJsonPath, modulesFilePath);
+    }
+
+    if (!options.e && !options.m) {
+      console.log(
+        `[${callerName}] No environment or modules name specified. Skipping...`
+      );
     }
   }
 }

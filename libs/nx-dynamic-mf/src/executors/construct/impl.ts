@@ -146,7 +146,7 @@ function adjustGlobalStylesBundleNameIfNecessary(
         : moduleRootDir;
       const allFilesInParentFolder = readdirSync(globalStylesDir);
       const globalStyleRegex = new RegExp(
-        `^${fileName.replace('.css', '')}\\..*\\.css$`
+        `^${fileName.replace('.css', '')}.*\\.css$`
       );
       const file = allFilesInParentFolder.find((f) => globalStyleRegex.test(f));
       if (!file) {

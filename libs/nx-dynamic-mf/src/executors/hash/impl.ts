@@ -45,7 +45,14 @@ export default async function runExecutor(
         throw new Error(`No sourceRoot found for ${callerName}`);
       }
       const modulePath = join(projConfig.sourceRoot, m.url);
-      const remoteEntryPath = join(modulePath, 'remoteEntry.json');
+
+      const remoteEntryPathNf = join(modulePath, 'remoteEntry.json');
+      const remoteEntryPathMf = join(modulePath, 'remoteEntry.js');
+
+      const remoteEntryPath = existsSync(remoteEntryPathNf)
+        ? remoteEntryPathNf
+        : remoteEntryPathMf;
+
       const hash = createHash('shake256', { outputLength: 8 });
       hash.update(readFileSync(remoteEntryPath, 'utf8'));
       const moduleToUpdate = moduleDefinitions.modules.find(

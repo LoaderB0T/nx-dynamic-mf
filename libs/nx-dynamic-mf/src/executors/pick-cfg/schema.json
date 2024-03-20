@@ -15,9 +15,9 @@
       "type": "string",
       "description": "Specify an environment file. Defaults to environment.default.json if not specified"
     },
-    "serveTarget": {
+    "target": {
       "type": "string",
-      "description": "The target to serve. Defaults to 'serve-ng'"
+      "description": "The target to run afterwards."
     }
   }
 }

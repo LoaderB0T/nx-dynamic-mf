@@ -2,7 +2,7 @@
   "name": "nx-dynamic-mf",
   "description": "Nx helper for ng-dynamic-mf",
   "license": "MIT",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "author": {
     "name": "Janik Schumacher (LoaderB0T)",
     "url": "https://awdware.de"
@@ -34,6 +34,6 @@
   "generators": "./generators.json",
   "executors": "./executors.json",
   "peerDependencies": {
-    "ng-dynamic-mf": ">=3.0.0"
+    "ng-dynamic-mf": ">=4.0.0"
   }
 }

@@ -248,17 +248,19 @@ function buildAndWatchApp(
   const cmd = `nx build ${moduleToLoad.name} --watch`;
   console.log('executing: ', cmd);
   let _resolve: () => void;
-  promiseExec(cmd, (data) => {
-    if (data.includes('Build at:')) {
-      if (!projConfig.sourceRoot) {
-        throw new Error('No sourceRoot found in project configuration');
+  promiseExec(cmd, {
+    dataCallback: (data) => {
+      if (data.includes('Build at:')) {
+        if (!projConfig.sourceRoot) {
+          throw new Error('No sourceRoot found in project configuration');
+        }
+        fse.copySync(
+          join('dist', moduleConfig.root),
+          join(projConfig.sourceRoot, moduleToLoad.url)
+        );
+        _resolve();
       }
-      fse.copySync(
-        join('dist', moduleConfig.root),
-        join(projConfig.sourceRoot, moduleToLoad.url)
-      );
-      _resolve();
-    }
+    },
   });
   // watched builds are "done" when the first build is done
   builds.push(

@@ -1,12 +1,13 @@
 import type { ExecutorContext } from '@nrwl/devkit';
 
 import { join, resolvePath } from '../utils/path';
-import { ServeRemoteExecutorOptions } from './types/options.type';
+import { PickCfgExecutorOptions } from './types/options.type';
 import { getCfgFile } from '../utils/get-json-file';
 import { copy } from '../utils/copy-file';
+import { promiseExec } from '../utils/promise-exec';
 
 export default async function pickCfgExecutor(
-  options: ServeRemoteExecutorOptions,
+  options: PickCfgExecutorOptions,
   context: ExecutorContext
 ): Promise<{ success: boolean }> {
   await doPickCfg();
@@ -60,9 +61,14 @@ export default async function pickCfgExecutor(
       await copy(moduleJsonPath, modulesFilePath);
     }
 
-    if (!options.e && !options.m) {
-      console.log(
-        `[${callerName}] No environment or modules name specified. Skipping...`
+    // If specified, execute the executor
+    if (options.target) {
+      const configurationOrEmpty = context.configurationName
+        ? `:${context.configurationName}`
+        : '';
+      await promiseExec(
+        `nx run ${callerName}:${options.target}${configurationOrEmpty}`,
+        { inheritStdio: true }
       );
     }
   }

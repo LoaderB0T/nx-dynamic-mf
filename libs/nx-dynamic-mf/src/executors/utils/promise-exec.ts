@@ -1,17 +1,33 @@
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 
-export function promiseExec(
-  command: string,
-  dataCallback?: (data: string) => void
-) {
+type Options = {
+  dataCallback?: (data: string) => void;
+  inheritStdio?: boolean;
+};
+
+export function promiseExec(command: string, options?: Options) {
+  if (options?.dataCallback && options?.inheritStdio) {
+    throw new Error('Cannot use dataCallback and inheritStdio together');
+  }
+  const commandAndArgs = command.split(' ');
+  const cmd = commandAndArgs[0];
+  const args = commandAndArgs.slice(1);
+
   return new Promise<void>((resolve, reject) => {
     console.log('executing: ', command);
-    const child = exec(command);
-    child.stdout?.pipe(process.stdout);
-    child.stderr?.pipe(process.stderr);
-    if (dataCallback) {
-      child.stdout?.on('data', dataCallback);
+    const child = spawn(cmd, args, {
+      stdio: options?.inheritStdio ? 'inherit' : 'pipe',
+      shell: true,
+      env: { ...process.env, FORCE_COLOR: 'true' },
+    });
+    if (!options?.inheritStdio) {
+      child.stdout?.pipe(process.stdout);
+      child.stderr?.pipe(process.stderr);
+      if (options?.dataCallback) {
+        child.stdout?.on('data', options?.dataCallback);
+      }
     }
     child.on('exit', (code) => (code === 0 ? resolve() : reject(code)));
+    child.on('error', (error) => reject(error));
   });
 }

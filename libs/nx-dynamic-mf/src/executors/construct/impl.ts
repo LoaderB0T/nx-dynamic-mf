@@ -29,7 +29,7 @@ export default async function constructExecutor(
     throw new Error(`No sourceRoot found for ${callerName}`);
   }
 
-  // Copy environment.*.json to modules.json
+  // Copy environment.*.json to environment.json
   const { configJsonPath: environmentJsonPath } = await getCfgFile(
     'environment',
     projRoot,
@@ -55,19 +55,7 @@ export default async function constructExecutor(
   await copy(moduleJsonPath, modulesFilePath);
 
   // Parse modules.json
-  const modulesFile = fse.readFileSync(modulesFilePath, 'utf8');
-  const moduleDefinitions = JSON.parse(modulesFile) as ModuleDefinitions;
-
-  delete moduleDefinitions['$schema'];
-  moduleDefinitions.modules.forEach((m) => {
-    delete m.projectName;
-  });
-
-  fse.writeFileSync(
-    modulesFilePath,
-    JSON.stringify(moduleDefinitions, null, 2),
-    { encoding: 'utf8' },
-  );
+  const moduleDefinitions = parseAndCleanupModulesFile(modulesFilePath);
 
   // Add constructType to module definitions
   const moduleCfgs = moduleDefinitions.modules.map((m) => {
@@ -109,7 +97,6 @@ export default async function constructExecutor(
     adjustGlobalStylesBundleNameIfNecessary(
       moduleCfgs,
       projConfig,
-      moduleDefinitions,
       modulesFilePath,
     );
 
@@ -133,12 +120,34 @@ export default async function constructExecutor(
   return { success: true };
 }
 
+function parseAndCleanupModulesFile(modulesFilePath: string) {
+  const modulesFile = fse.readFileSync(modulesFilePath, 'utf8');
+  const moduleDefinitions = JSON.parse(modulesFile) as ModuleDefinitions;
+  const moduleDefinitionsOriginal = JSON.parse(
+    modulesFile,
+  ) as ModuleDefinitions;
+
+  delete moduleDefinitions['$schema'];
+  moduleDefinitions.modules.forEach((m) => {
+    delete m.projectName;
+  });
+
+  fse.writeFileSync(
+    modulesFilePath,
+    JSON.stringify(moduleDefinitions, null, 2),
+    { encoding: 'utf8' },
+  );
+  return moduleDefinitionsOriginal;
+}
+
 function adjustGlobalStylesBundleNameIfNecessary(
   moduleCfgs: ExtendedModuleDefinition[],
   projConfig: ProjectConfiguration,
-  moduleDefinitions: ModuleDefinitions,
   modulesFilePath: string,
 ) {
+  const moduleDefinitions = JSON.parse(
+    fse.readFileSync(modulesFilePath, 'utf8'),
+  ) as ModuleDefinitions;
   let changes = false;
   moduleCfgs
     .filter((x) => x.hasGlobalStyles && isBuilt(x))

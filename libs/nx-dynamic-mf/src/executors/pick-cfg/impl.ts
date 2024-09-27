@@ -5,10 +5,11 @@ import { PickCfgExecutorOptions } from './types/options.type';
 import { getCfgFile } from '../utils/get-json-file';
 import { copy } from '../utils/copy-file';
 import { promiseExec } from '../utils/promise-exec';
+import { getProject } from '../utils/get-projects';
 
 export default async function pickCfgExecutor(
   options: PickCfgExecutorOptions,
-  context: ExecutorContext
+  context: ExecutorContext,
 ): Promise<{ success: boolean }> {
   await doPickCfg();
 
@@ -21,8 +22,9 @@ export default async function pickCfgExecutor(
     if (!callerName) {
       throw new Error('No projectName found in context');
     }
-    const projectRoot = context.workspace.projects[callerName].root;
-    const projectSrcRoot = context.workspace.projects[callerName].sourceRoot;
+    const projConfig = getProject(context, callerName);
+    const projectRoot = projConfig.root;
+    const projectSrcRoot = projConfig.sourceRoot;
     if (!projectSrcRoot) {
       throw new Error('No sourceRoot found in context');
     }
@@ -32,13 +34,13 @@ export default async function pickCfgExecutor(
       const absoluteEnvOutDir = resolvePath(
         projectRoot,
         'src',
-        options.envOutFolder
+        options.envOutFolder,
       );
       const { configJsonPath: environmentJsonPath } = await getCfgFile(
         'environment',
         projectRoot,
         options.envSrcFolder,
-        options.e
+        options.e,
       );
       const outFileName = join(absoluteEnvOutDir, 'environment.json');
       await copy(environmentJsonPath, outFileName);
@@ -50,12 +52,12 @@ export default async function pickCfgExecutor(
         'modules',
         projectRoot,
         options.modulesSrcFolder,
-        options.m
+        options.m,
       );
       const absoluteModulesOutDir = resolvePath(
         projectRoot,
         'src',
-        options.modulesOutFolder
+        options.modulesOutFolder,
       );
       const modulesFilePath = join(absoluteModulesOutDir, 'modules.json');
       await copy(moduleJsonPath, modulesFilePath);
@@ -68,7 +70,7 @@ export default async function pickCfgExecutor(
         : '';
       await promiseExec(
         `nx run ${callerName}:${options.target}${configurationOrEmpty}`,
-        { inheritStdio: true }
+        { inheritStdio: true },
       );
     }
   }

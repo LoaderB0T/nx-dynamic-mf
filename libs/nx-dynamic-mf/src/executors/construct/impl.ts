@@ -12,6 +12,7 @@ import { isBuilt } from './utils/is-built';
 import { promiseExec } from '../utils/promise-exec';
 import { getCfgFile } from '../utils/get-json-file';
 import { copy } from '../utils/copy-file';
+import { getProject } from '../utils/get-projects';
 
 export default async function constructExecutor(
   options: ConstructExecutorOptions,
@@ -21,7 +22,7 @@ export default async function constructExecutor(
   if (!callerName) {
     throw new Error('No projectName found in context');
   }
-  const projConfig = context.workspace.projects[callerName];
+  const projConfig = getProject(context, callerName);
   const projRoot = projConfig.root;
   const projSrcRoot = projConfig.sourceRoot;
   if (!projSrcRoot) {
@@ -330,11 +331,5 @@ function getNxModuleConfig(
   moduleDef: ExtendedModuleDefinition,
 ) {
   const searchForName = moduleDef.projectName ?? moduleDef.name;
-  const res = context.workspace.projects[searchForName];
-  if (!res) {
-    throw new Error(
-      `Could not find project ${searchForName}. Try specifying of adjusting the projectName in the module definition.`,
-    );
-  }
-  return res;
+  return getProject(context, searchForName);
 }

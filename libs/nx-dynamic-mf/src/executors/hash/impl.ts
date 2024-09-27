@@ -8,6 +8,7 @@ import { ExtendedModuleDefinition } from '../types/module-def.type';
 import { getConstructTypeFromUrl } from '../utils/get-construct-type-from-url';
 import { join } from '../utils/path';
 import { existsSync } from 'fs-extra';
+import { getProject } from '../utils/get-projects';
 
 export interface HashExecutorOptions {
   modulesOutFolder?: string;
@@ -15,13 +16,14 @@ export interface HashExecutorOptions {
 
 export default async function runExecutor(
   options: HashExecutorOptions,
-  context: ExecutorContext
+  context: ExecutorContext,
 ) {
   const callerName = context.projectName;
   if (!callerName) {
     throw new Error('No projectName found in context');
   }
-  const projConfig = context.workspace.projects[callerName];
+  const projConfig = getProject(context, callerName);
+
   const projRoot = existsSync(join('dist', projConfig.root, 'browser'))
     ? join(projConfig.root, 'browser')
     : projConfig.root;
@@ -56,7 +58,7 @@ export default async function runExecutor(
       const hash = createHash('shake256', { outputLength: 8 });
       hash.update(readFileSync(remoteEntryPath, 'utf8'));
       const moduleToUpdate = moduleDefinitions.modules.find(
-        (x) => x.name === m.name
+        (x) => x.name === m.name,
       );
       if (!moduleToUpdate) {
         throw new Error(`Module ${m.name} not found in modules.json`);

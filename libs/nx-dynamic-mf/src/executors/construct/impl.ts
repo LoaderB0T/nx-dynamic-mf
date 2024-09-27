@@ -1,5 +1,4 @@
 import type { ExecutorContext, ProjectConfiguration } from '@nrwl/devkit';
-import { existsSync, readFileSync, readdirSync } from 'fs';
 import * as fse from 'fs-extra';
 
 import type { ModuleDefinitions } from 'ng-dynamic-mf';
@@ -16,7 +15,7 @@ import { copy } from '../utils/copy-file';
 
 export default async function constructExecutor(
   options: ConstructExecutorOptions,
-  context: ExecutorContext
+  context: ExecutorContext,
 ): Promise<{ success: boolean }> {
   const callerName = context.projectName;
   if (!callerName) {
@@ -34,7 +33,7 @@ export default async function constructExecutor(
     'environment',
     projRoot,
     options.envSrcFolder,
-    options.e
+    options.e,
   );
   const absoluteEnvOutDir = resolvePath(projRoot, 'src', options.envOutFolder);
   await copy(environmentJsonPath, join(absoluteEnvOutDir, 'environment.json'));
@@ -44,19 +43,30 @@ export default async function constructExecutor(
     'modules',
     projRoot,
     options.modulesSrcFolder,
-    options.m
+    options.m,
   );
   const absoluteModulesOutDir = resolvePath(
     projRoot,
     'src',
-    options.modulesOutFolder
+    options.modulesOutFolder,
   );
   const modulesFilePath = join(absoluteModulesOutDir, 'modules.json');
   await copy(moduleJsonPath, modulesFilePath);
 
   // Parse modules.json
-  const modulesFile = readFileSync(modulesFilePath, 'utf8');
+  const modulesFile = fse.readFileSync(modulesFilePath, 'utf8');
   const moduleDefinitions = JSON.parse(modulesFile) as ModuleDefinitions;
+
+  delete moduleDefinitions['$schema'];
+  moduleDefinitions.modules.forEach((m) => {
+    delete m.projectName;
+  });
+
+  fse.writeFileSync(
+    modulesFilePath,
+    JSON.stringify(moduleDefinitions, null, 2),
+    { encoding: 'utf8' },
+  );
 
   // Add constructType to module definitions
   const moduleCfgs = moduleDefinitions.modules.map((m) => {
@@ -82,7 +92,7 @@ export default async function constructExecutor(
     moduleCfgs,
     context,
     options,
-    projConfig
+    projConfig,
   );
 
   // Wait for builds to finish
@@ -92,14 +102,14 @@ export default async function constructExecutor(
     copyBuilds(
       moduleCfgs.filter((m) => isBuilt(m)),
       context,
-      projConfig
+      projConfig,
     );
 
     adjustGlobalStylesBundleNameIfNecessary(
       moduleCfgs,
       projConfig,
       moduleDefinitions,
-      modulesFilePath
+      modulesFilePath,
     );
 
     // Serve the host after all builds (not the servings) are finished and options.build is false
@@ -126,7 +136,7 @@ function adjustGlobalStylesBundleNameIfNecessary(
   moduleCfgs: ExtendedModuleDefinition[],
   projConfig: ProjectConfiguration,
   moduleDefinitions: ModuleDefinitions,
-  modulesFilePath: string
+  modulesFilePath: string,
 ) {
   let changes = false;
   moduleCfgs
@@ -138,25 +148,25 @@ function adjustGlobalStylesBundleNameIfNecessary(
       }
       const moduleRootDir = join(projConfig.sourceRoot, moduleCfg.url);
       const filePath = join(moduleRootDir, fileName);
-      if (existsSync(filePath)) {
+      if (fse.existsSync(filePath)) {
         return;
       }
-      const globalStylesDir = existsSync(join(moduleRootDir, 'browser'))
+      const globalStylesDir = fse.existsSync(join(moduleRootDir, 'browser'))
         ? join(moduleRootDir, 'browser')
         : moduleRootDir;
-      const allFilesInParentFolder = readdirSync(globalStylesDir);
+      const allFilesInParentFolder = fse.readdirSync(globalStylesDir);
       const globalStyleRegex = new RegExp(
-        `^${fileName.replace('.css', '')}.*\\.css$`
+        `^${fileName.replace('.css', '')}.*\\.css$`,
       );
       const file = allFilesInParentFolder.find((f) => globalStyleRegex.test(f));
       if (!file) {
         console.error('foundFiles: ', allFilesInParentFolder);
         throw new Error(
-          `Could not find global style ${fileName} file for module ${moduleCfg.url}`
+          `Could not find global style ${fileName} file for module ${moduleCfg.url}`,
         );
       }
       const moduleToUpdate = moduleDefinitions.modules.find(
-        (x) => x.name === moduleCfg.name
+        (x) => x.name === moduleCfg.name,
       );
       if (!moduleToUpdate) {
         throw new Error(`Module ${moduleCfg.name} not found in modules.json`);
@@ -167,7 +177,7 @@ function adjustGlobalStylesBundleNameIfNecessary(
   if (changes) {
     fse.writeFileSync(
       modulesFilePath,
-      JSON.stringify(moduleDefinitions, null, 2)
+      JSON.stringify(moduleDefinitions, null, 2),
     );
   }
 }
@@ -175,7 +185,7 @@ function adjustGlobalStylesBundleNameIfNecessary(
 function copyBuilds(
   moduleDefs: ExtendedModuleDefinition[],
   context: ExecutorContext,
-  projConfig: ProjectConfiguration
+  projConfig: ProjectConfiguration,
 ) {
   moduleDefs.forEach((moduleDef) => {
     const moduleConfig = getNxModuleConfig(context, moduleDef);
@@ -185,12 +195,14 @@ function copyBuilds(
 
     const distModulePath = join('dist', moduleConfig.root);
 
-    const distModulePathBrowser = existsSync(join(distModulePath, 'browser'))
+    const distModulePathBrowser = fse.existsSync(
+      join(distModulePath, 'browser'),
+    )
       ? join(distModulePath, 'browser')
       : distModulePath;
 
     const hostModulePath = join(projConfig.sourceRoot, moduleDef.url);
-    if (existsSync(hostModulePath)) {
+    if (fse.existsSync(hostModulePath)) {
       fse.removeSync(hostModulePath);
     }
 
@@ -201,12 +213,12 @@ function copyBuilds(
 function serveHost(
   servings: Promise<void>[],
   callerName: string,
-  options: ConstructExecutorOptions
+  options: ConstructExecutorOptions,
 ) {
   const envString = options.e ? ` -e ${options.e}` : '';
   const hostString = options.host ? ' --host 0.0.0.0 --disable-host-check' : '';
   servings.push(
-    promiseExec(`nx serve ${callerName} --open${envString}${hostString}`)
+    promiseExec(`nx serve ${callerName} --open${envString}${hostString}`),
   );
 }
 
@@ -216,11 +228,11 @@ function buildAndServeModules(
   moduleCfgs: ExtendedModuleDefinition[],
   context: ExecutorContext,
   options: ConstructExecutorOptions,
-  projConfig: ProjectConfiguration
+  projConfig: ProjectConfiguration,
 ) {
   const modulesToServe = moduleCfgs.filter((m) => m.constructType === 'serve');
   const modulesToBuildAndWatch = moduleCfgs.filter(
-    (m) => m.constructType === 'buildAndWatch'
+    (m) => m.constructType === 'buildAndWatch',
   );
   const modulesToBuild = moduleCfgs.filter((m) => m.constructType === 'build');
 
@@ -240,10 +252,10 @@ function buildAndWatchApp(
   moduleToLoad: ExtendedModuleDefinition,
   builds: Promise<void>[],
   moduleConfig: ProjectConfiguration,
-  projConfig: ProjectConfiguration
+  projConfig: ProjectConfiguration,
 ) {
   console.log(
-    `Building ${moduleToLoad.name} to ${moduleToLoad.url} (watching)`
+    `Building ${moduleToLoad.name} to ${moduleToLoad.url} (watching)`,
   );
   const cmd = `nx build ${moduleToLoad.name} --watch`;
   console.log('executing: ', cmd);
@@ -256,7 +268,7 @@ function buildAndWatchApp(
         }
         fse.copySync(
           join('dist', moduleConfig.root),
-          join(projConfig.sourceRoot, moduleToLoad.url)
+          join(projConfig.sourceRoot, moduleToLoad.url),
         );
         _resolve();
       }
@@ -266,13 +278,13 @@ function buildAndWatchApp(
   builds.push(
     new Promise<void>((resolve) => {
       _resolve = resolve;
-    })
+    }),
   );
 }
 
 function buildApps(
   modulesToLoad: ExtendedModuleDefinition[],
-  builds: Promise<void>[]
+  builds: Promise<void>[],
 ) {
   if (modulesToLoad.length === 0) {
     return;
@@ -282,8 +294,8 @@ function buildApps(
     promiseExec(
       `nx run-many --target build --projects ${modulesToLoad
         .map((m) => m.projectName ?? m.name)
-        .join(',')}`
-    )
+        .join(',')}`,
+    ),
   );
 }
 
@@ -295,7 +307,7 @@ async function buildHost(callerName: string) {
 function serveApp(
   options: ConstructExecutorOptions,
   moduleToLoad: ExtendedModuleDefinition,
-  servings: Promise<void>[]
+  servings: Promise<void>[],
 ) {
   const port = /localhost:(\d+)/.exec(moduleToLoad.url)?.[1];
   if (!port || Number.isNaN(Number.parseInt(port))) {
@@ -308,20 +320,20 @@ function serveApp(
   console.log(`Serving ${moduleToLoad.name} on port ${portNumber}`);
   servings.push(
     promiseExec(
-      `nx serve ${moduleProjectName} --port ${portNumber}${envString}${hostString}`
-    )
+      `nx serve ${moduleProjectName} --port ${portNumber}${envString}${hostString}`,
+    ),
   );
 }
 
 function getNxModuleConfig(
   context: ExecutorContext,
-  moduleDef: ExtendedModuleDefinition
+  moduleDef: ExtendedModuleDefinition,
 ) {
   const searchForName = moduleDef.projectName ?? moduleDef.name;
   const res = context.workspace.projects[searchForName];
   if (!res) {
     throw new Error(
-      `Could not find project ${searchForName}. Try specifying of adjusting the projectName in the module definition.`
+      `Could not find project ${searchForName}. Try specifying of adjusting the projectName in the module definition.`,
     );
   }
   return res;

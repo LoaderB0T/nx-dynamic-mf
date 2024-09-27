@@ -31,6 +31,12 @@ More features including generators and more to come...
 
 ### Install
 
+pnpm
+
+```bash
+pnpm install -D nx-dynamic-mf
+```
+
 npm
 
 ```bash

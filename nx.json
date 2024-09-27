@@ -5,7 +5,7 @@
     "defaultBase": "main"
   },
   "cli": {
-    "packageManager": "yarn"
+    "packageManager": "pnpm"
   },
   "implicitDependencies": {
     "package.json": {

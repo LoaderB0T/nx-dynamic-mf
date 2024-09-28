@@ -1,0 +1,77 @@
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20.x
+      - name: Install pnpm
+        run: npm i -g pnpm
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-pnpm-web
+        with:
+          # pnpm cache files are stored in `~/.pnpm-store` on Linux/macOS
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+
+      - name: Install
+        run: pnpm i
+      - name: Build apps
+        run: pnpm nx construct host --build -m build -e github --verbose
+      - name: Hash apps
+        run: pnpm nx hash --verbose
+      - name: Lint
+        run: pnpm run lint
+
+        # Prepare the tests
+
+      - name: Install
+        run: pnpm i
+        working-directory: tests
+      - name: Copy build into tests/dist folder
+        run: mkdir -p dist && cp -r ../web/dist/apps/host/browser/** ./dist
+        working-directory: tests
+      - name: Run Playwright tests
+        run: pnpm run test
+        working-directory: tests
+
+      - name: Upload Test Results
+        continue-on-error: true
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Playwright Report
+          path: /home/runner/work/awdware3/awdware3/tests/playwright-report/
+
+  event_file:
+    name: "Event File"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Event File
+          path: ${{ github.event_path }}

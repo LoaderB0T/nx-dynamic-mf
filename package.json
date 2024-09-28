@@ -29,6 +29,7 @@
     "start": "nx serve",
     "build": "nx build && pnpm cpy ./README.md dist/libs/nx-dynamic-mf",
     "drop": "cd dist/libs/nx-dynamic-mf && pnpm publish",
+    "lint": "nx run-many --target=lint",
     "test": "nx test"
   },
   "private": true,
@@ -38,7 +39,6 @@
     "tslib": "^2.7.0"
   },
   "devDependencies": {
-    "@nrwl/cli": "15.9.3",
     "@nrwl/devkit": "19.8.2",
     "@nrwl/eslint-plugin-nx": "19.8.2",
     "@nrwl/jest": "19.8.2",

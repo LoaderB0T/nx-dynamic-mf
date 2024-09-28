@@ -1,7 +1,9 @@
 {
+  "name": "nx-dynamic-mf",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/nx-dynamic-mf/src",
   "projectType": "library",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@nrwl/js:tsc",
@@ -49,12 +51,11 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/nx-dynamic-mf"],
+      "outputs": ["{workspaceRoot}/coverage/libs/nx-dynamic-mf"],
       "options": {
         "jestConfig": "libs/nx-dynamic-mf/jest.config.ts",
         "passWithNoTests": true
       }
     }
-  },
-  "tags": []
+  }
 }
